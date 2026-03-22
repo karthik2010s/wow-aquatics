@@ -10,6 +10,7 @@ const state = {
   cart: [],
   orders: [],
   isAdmin: false,
+  adminToken: window.localStorage.getItem("adminToken") || "",
   loading: false,
 };
 
@@ -100,12 +101,18 @@ function getInventoryState(stock) {
 }
 
 async function apiFetch(url, options = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
+
+  if (state.adminToken) {
+    headers["X-Admin-Token"] = state.adminToken;
+  }
+
   const response = await fetch(url, {
     credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers,
     ...options,
   });
 
@@ -428,9 +435,15 @@ async function loadAdminSession() {
   try {
     const session = await apiFetch("/api/admin/session");
     state.isAdmin = Boolean(session.authenticated);
+    state.adminToken = session.authenticated ? state.adminToken : "";
+    if (!state.isAdmin) {
+      window.localStorage.removeItem("adminToken");
+    }
     renderAdminState();
   } catch {
     state.isAdmin = false;
+    state.adminToken = "";
+    window.localStorage.removeItem("adminToken");
     renderAdminState();
   }
 }
@@ -517,7 +530,7 @@ async function createOrder(event) {
     orderForm.reset();
     closeCartDrawer();
     await loadRemoteData();
-    setStatus(`${formatCategory(payload.fulfillmentType)} order created`);
+    setStatus(`${formatCategory(payload.fulfillmentType)} order placed successfully`);
   } catch (error) {
     setStatus(error.message);
   }
@@ -540,10 +553,14 @@ async function loginAdmin(event) {
   event.preventDefault();
 
   try {
-    await apiFetch("/api/admin/login", {
+    const result = await apiFetch("/api/admin/login", {
       method: "POST",
       body: JSON.stringify({ password: adminPasswordInput.value }),
     });
+    state.adminToken = result.token || "";
+    if (state.adminToken) {
+      window.localStorage.setItem("adminToken", state.adminToken);
+    }
     state.isAdmin = true;
     adminPasswordInput.value = "";
     renderAdminState();
@@ -561,6 +578,8 @@ async function logoutAdmin() {
       body: JSON.stringify({}),
     });
     state.isAdmin = false;
+    state.adminToken = "";
+    window.localStorage.removeItem("adminToken");
     state.orders = [];
     renderAdminState();
     renderOrders();
@@ -691,8 +710,8 @@ checkoutButton.addEventListener("click", () => {
   document.getElementById("orders").scrollIntoView({ behavior: "smooth" });
   setStatus(
     state.cart.length
-      ? "Fill customer details to create a delivery or pickup order"
-      : "Add products before requesting checkout"
+      ? "Fill customer details in checkout to place your order"
+      : "Add products to the cart before checkout"
   );
 });
 

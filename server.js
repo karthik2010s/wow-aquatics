@@ -198,6 +198,11 @@ function createSessionToken() {
 }
 
 function isAdminRequest(req) {
+  const headerToken = req.headers["x-admin-token"];
+  if (headerToken && headerToken === createSessionToken()) {
+    return true;
+  }
+
   const cookies = parseCookies(req.headers.cookie);
   const token = cookies.admin_session;
   if (!token) {
@@ -342,7 +347,7 @@ app.post("/api/admin/login", (req, res) => {
     "Set-Cookie",
     `admin_session=${createSessionToken()}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secureCookie}`
   );
-  res.json({ authenticated: true });
+  res.json({ authenticated: true, token: createSessionToken() });
 });
 
 app.post("/api/admin/logout", (_req, res) => {
