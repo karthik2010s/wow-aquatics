@@ -320,6 +320,56 @@ async function getOrders() {
   return result.rows;
 }
 
+async function getAdminSummary() {
+  const [productsResult, revenueResult, categoriesResult, recentOrdersResult] = await Promise.all([
+    pool.query(
+      `
+        SELECT
+          COUNT(*)::int AS "totalProducts",
+          COUNT(*) FILTER (WHERE stock <= 5)::int AS "lowStockProducts"
+        FROM products
+      `
+    ),
+    pool.query(
+      `
+        SELECT
+          COALESCE(SUM(total), 0)::float8 AS "totalRevenue",
+          COUNT(*)::int AS "totalOrders"
+        FROM orders
+      `
+    ),
+    pool.query(
+      `
+        SELECT category, COUNT(*)::int AS count
+        FROM products
+        GROUP BY category
+        ORDER BY count DESC, category ASC
+        LIMIT 4
+      `
+    ),
+    pool.query(
+      `
+        SELECT
+          customer_name AS "customerName",
+          fulfillment_type AS "fulfillmentType",
+          total::float8 AS total
+        FROM orders
+        ORDER BY created_at DESC, id DESC
+        LIMIT 4
+      `
+    ),
+  ]);
+
+  return {
+    totalProducts: productsResult.rows[0].totalProducts,
+    lowStockProducts: productsResult.rows[0].lowStockProducts,
+    totalOrders: revenueResult.rows[0].totalOrders,
+    totalRevenue: revenueResult.rows[0].totalRevenue,
+    topCategories: categoriesResult.rows,
+    recentOrders: recentOrdersResult.rows,
+  };
+}
+
 app.get("/", (_req, res) => {
   res.sendFile(INDEX_FILE);
 });
