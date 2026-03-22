@@ -155,6 +155,10 @@ function renderAdminState() {
 }
 
 function renderFilters() {
+  if (!filters) {
+    return;
+  }
+
   const categories = [...new Set(state.products.map((product) => product.category))].sort((a, b) =>
     a.localeCompare(b)
   );
@@ -245,6 +249,10 @@ function renderDashboardSummary() {
 }
 
 function renderProducts() {
+  if (!productGrid || !template) {
+    return;
+  }
+
   const filtered = state.products.filter((product) => {
     const matchesFilter = state.filter === "all" || product.category === state.filter;
     const text = `${product.name} ${product.description} ${product.meta}`.toLowerCase();
@@ -720,41 +728,51 @@ async function loadMarketplaceDemo() {
   }
 }
 
-searchInput.addEventListener("input", (event) => {
-  state.query = event.target.value.trim();
-  renderProducts();
-});
+if (searchInput) {
+  searchInput.addEventListener("input", (event) => {
+    state.query = event.target.value.trim();
+    renderProducts();
+  });
+}
 
-sortSelect.addEventListener("change", (event) => {
-  state.sort = event.target.value;
-  renderProducts();
-});
+if (sortSelect) {
+  sortSelect.addEventListener("change", (event) => {
+    state.sort = event.target.value;
+    renderProducts();
+  });
+}
 
-stockSelect.addEventListener("change", (event) => {
-  state.stockFilter = event.target.value;
-  renderProducts();
-});
+if (stockSelect) {
+  stockSelect.addEventListener("change", (event) => {
+    state.stockFilter = event.target.value;
+    renderProducts();
+  });
+}
 
-productGrid.addEventListener("click", (event) => {
-  const button = event.target.closest(".add-button");
-  if (!button) {
-    return;
-  }
+if (productGrid) {
+  productGrid.addEventListener("click", (event) => {
+    const button = event.target.closest(".add-button");
+    if (!button) {
+      return;
+    }
 
-  addToCart(Number(button.dataset.productId));
-});
+    addToCart(Number(button.dataset.productId));
+  });
+}
 
-filters.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-filter]");
-  if (!button) {
-    return;
-  }
+if (filters) {
+  filters.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-filter]");
+    if (!button) {
+      return;
+    }
 
-  state.filter = button.dataset.filter;
-  document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.remove("active"));
-  button.classList.add("active");
-  renderProducts();
-});
+    state.filter = button.dataset.filter;
+    document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.remove("active"));
+    button.classList.add("active");
+    renderProducts();
+  });
+}
 
 cartItems.addEventListener("click", (event) => {
   const button = event.target.closest("[data-action]");
