@@ -35,6 +35,7 @@ const productForm = document.getElementById("product-form");
 const inventoryList = document.getElementById("inventory-list");
 const orderForm = document.getElementById("order-form");
 const ordersList = document.getElementById("orders-list");
+const adminAccessSection = document.getElementById("admin-access");
 const dashboardSection = document.getElementById("dashboard");
 const activeOrdersCard = document.getElementById("active-orders-card");
 const summaryProducts = document.getElementById("summary-products");
@@ -811,7 +812,10 @@ loadMarketplaceDemoButton.addEventListener("click", loadMarketplaceDemo);
 cartButton.addEventListener("click", openCart);
 closeCart.addEventListener("click", closeCartDrawer);
 adminScrollButton.addEventListener("click", () => {
-  document.getElementById("admin-access").scrollIntoView({ behavior: "smooth" });
+  adminAccessSection.classList.toggle("hidden");
+  if (!adminAccessSection.classList.contains("hidden")) {
+    adminAccessSection.scrollIntoView({ behavior: "smooth" });
+  }
 });
 
 checkoutButton.addEventListener("click", () => {
