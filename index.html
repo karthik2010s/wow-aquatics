@@ -65,6 +65,37 @@
       </header>
 
       <main>
+        <section class="section catalog-section" id="catalog">
+          <div class="catalog-toolbar">
+            <label class="search-box" for="search-input">
+              <span>Search</span>
+              <input id="search-input" type="search" placeholder="Try headphones, shoes, lamp..." />
+            </label>
+            <label class="search-box" for="sort-select">
+              <span>Sort by</span>
+              <select id="sort-select">
+                <option value="featured">Featured</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="name-az">Name: A to Z</option>
+                <option value="stock-high">Stock: High to Low</option>
+              </select>
+            </label>
+            <label class="search-box" for="stock-select">
+              <span>Availability</span>
+              <select id="stock-select">
+                <option value="all">All products</option>
+                <option value="in-stock">In stock</option>
+                <option value="low-stock">Low stock</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="filters" id="filters"></div>
+
+          <div class="product-grid" id="product-grid"></div>
+        </section>
+
         <section class="section admin-access-section" id="admin-access">
           <div class="section-heading">
             <div>
