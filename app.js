@@ -99,6 +99,17 @@ function formatPrice(amount) {
   return `Rs. ${amount}`;
 }
 
+function formatDateTime(value) {
+  if (!value) {
+    return "Just now";
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 function getPlaceholderImage(product) {
   const label = encodeURIComponent(getCategoryLabel(product.category || "Product"));
   return `https://placehold.co/800x550/fff1b8/7b6436?text=${label}`;
@@ -189,6 +200,12 @@ function renderCustomerOrders() {
 
   state.customerOrders.forEach((order) => {
     const steps = orderStatuses[order.fulfillmentType];
+    const timeline = steps
+      .map(
+        (step, index) =>
+          `<span class="timeline-step${index <= order.statusIndex ? " active" : ""}">${step}</span>`
+      )
+      .join("");
     const card = document.createElement("article");
     card.className = "order-card";
     card.innerHTML = `
@@ -204,6 +221,18 @@ function renderCustomerOrders() {
         <p class="order-status-label">Total: ${formatPrice(order.total)}</p>
       </div>
       <p class="order-status-label">Status: ${steps[order.statusIndex]}</p>
+      <details class="order-details">
+        <summary>View details</summary>
+        <div class="order-details-grid">
+          <p><strong>Order placed:</strong> ${formatDateTime(order.createdAt)}</p>
+          <p><strong>Customer:</strong> ${order.customerName}</p>
+          <p><strong>Phone:</strong> ${order.customerPhone || "Not provided"}</p>
+          <p><strong>Fulfillment:</strong> ${formatCategory(order.fulfillmentType)}</p>
+          <p><strong>Address:</strong> ${order.address}</p>
+          <p><strong>Items:</strong> ${order.itemsSummary}</p>
+        </div>
+        <div class="timeline-row">${timeline}</div>
+      </details>
     `;
     customerOrdersList.appendChild(card);
   });
@@ -776,6 +805,7 @@ async function createOrder(event) {
   const customerAddressInput = document.getElementById("customer-address");
   const payload = {
     customerName: customerNameInput.value.trim() || state.customer?.fullName || "",
+    customerPhone: customerPhoneInput?.value.trim() || state.customer?.phone || "",
     fulfillmentType: document.getElementById("fulfillment-type").value,
     address: customerAddressInput.value.trim() || state.customer?.address || "",
     items: state.cart,

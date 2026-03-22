@@ -324,6 +324,7 @@ async function initializeDatabase() {
       id BIGSERIAL PRIMARY KEY,
       customer_id BIGINT REFERENCES customers(id) ON DELETE SET NULL,
       customer_name TEXT NOT NULL,
+      customer_phone TEXT NOT NULL DEFAULT '',
       fulfillment_type TEXT NOT NULL,
       address TEXT NOT NULL,
       total NUMERIC(10, 2) NOT NULL,
@@ -336,6 +337,11 @@ async function initializeDatabase() {
   await pool.query(`
     ALTER TABLE orders
     ADD COLUMN IF NOT EXISTS customer_id BIGINT REFERENCES customers(id) ON DELETE SET NULL;
+  `);
+
+  await pool.query(`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS customer_phone TEXT NOT NULL DEFAULT '';
   `);
 
   const result = await pool.query("SELECT COUNT(*)::int AS count FROM products");
@@ -380,11 +386,13 @@ async function getOrders() {
       SELECT
         id::text AS id,
         customer_name AS "customerName",
+        customer_phone AS "customerPhone",
         fulfillment_type AS "fulfillmentType",
         address,
         total::float8 AS total,
         status_index AS "statusIndex",
-        items_summary AS "itemsSummary"
+        items_summary AS "itemsSummary",
+        created_at AS "createdAt"
       FROM orders
       ORDER BY created_at DESC, id DESC
     `
@@ -417,11 +425,13 @@ async function getCustomerOrders(customerId) {
       SELECT
         id::text AS id,
         customer_name AS "customerName",
+        customer_phone AS "customerPhone",
         fulfillment_type AS "fulfillmentType",
         address,
         total::float8 AS total,
         status_index AS "statusIndex",
-        items_summary AS "itemsSummary"
+        items_summary AS "itemsSummary",
+        created_at AS "createdAt"
       FROM orders
       WHERE customer_id = $1
       ORDER BY created_at DESC, id DESC
@@ -770,7 +780,7 @@ app.get("/api/orders", requireAdmin, async (_req, res) => {
 });
 
 app.post("/api/orders", async (req, res) => {
-  const { customerName, fulfillmentType, address, items } = req.body;
+  const { customerName, customerPhone, fulfillmentType, address, items } = req.body;
   const customerId = getCustomerIdFromRequest(req);
 
   if (!customerName || !address || !Array.isArray(items) || !items.length) {
@@ -828,18 +838,28 @@ app.post("/api/orders", async (req, res) => {
 
     const orderResult = await client.query(
       `
-        INSERT INTO orders (customer_id, customer_name, fulfillment_type, address, total, status_index, items_summary)
-        VALUES ($1, $2, $3, $4, $5, 0, $6)
+        INSERT INTO orders (customer_id, customer_name, customer_phone, fulfillment_type, address, total, status_index, items_summary)
+        VALUES ($1, $2, $3, $4, $5, $6, 0, $7)
         RETURNING
           id::text AS id,
           customer_name AS "customerName",
+          customer_phone AS "customerPhone",
           fulfillment_type AS "fulfillmentType",
           address,
           total::float8 AS total,
           status_index AS "statusIndex",
-          items_summary AS "itemsSummary"
+          items_summary AS "itemsSummary",
+          created_at AS "createdAt"
       `,
-      [customerId, String(customerName).trim(), fulfillmentType, String(address).trim(), total, itemsSummary]
+      [
+        customerId,
+        String(customerName).trim(),
+        String(customerPhone || "").trim(),
+        fulfillmentType,
+        String(address).trim(),
+        total,
+        itemsSummary,
+      ]
     );
 
     await client.query("COMMIT");

@@ -475,6 +475,52 @@ h3 {
   color: var(--muted);
 }
 
+.order-details {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.order-details summary {
+  cursor: pointer;
+  color: var(--sand);
+  font-weight: 700;
+}
+
+.order-details-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.order-details-grid p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.timeline-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.timeline-step {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.timeline-step.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #4b3415;
+  border-color: transparent;
+}
+
 .admin-form input,
 .admin-form select,
 .admin-form textarea {
