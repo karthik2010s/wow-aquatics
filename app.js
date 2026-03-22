@@ -7,7 +7,6 @@ const state = {
   filter: "all",
   query: "",
   sort: "featured",
-  stockFilter: "all",
   products: [],
   cart: [],
   orders: [],
@@ -23,7 +22,6 @@ const productGrid = document.getElementById("product-grid");
 const template = document.getElementById("product-card-template");
 const searchInput = document.getElementById("search-input");
 const sortSelect = document.getElementById("sort-select");
-const stockSelect = document.getElementById("stock-select");
 const filters = document.getElementById("filters");
 const cartButton = document.getElementById("cart-button");
 const cartDrawer = document.getElementById("cart-drawer");
@@ -381,12 +379,8 @@ function renderProducts() {
     const matchesFilter = state.filter === "all" || product.category === state.filter;
     const text = `${product.name} ${product.description} ${product.meta}`.toLowerCase();
     const matchesSearch = text.includes(state.query.toLowerCase());
-    const matchesStock =
-      state.stockFilter === "all" ||
-      (state.stockFilter === "in-stock" && product.stock > 0) ||
-      (state.stockFilter === "low-stock" && product.stock > 0 && product.stock <= 5);
 
-    return matchesFilter && matchesSearch && matchesStock;
+    return matchesFilter && matchesSearch;
   });
 
   filtered.sort((first, second) => {
@@ -452,7 +446,7 @@ function renderProducts() {
   if (!filtered.length && !state.loading) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.textContent = "No products matched your search or filters. Try another keyword or availability option.";
+    empty.textContent = "No products matched your search or filters. Try another keyword.";
     productGrid.appendChild(empty);
   }
 }
@@ -999,13 +993,6 @@ if (searchInput) {
 if (sortSelect) {
   sortSelect.addEventListener("change", (event) => {
     state.sort = event.target.value;
-    renderProducts();
-  });
-}
-
-if (stockSelect) {
-  stockSelect.addEventListener("change", (event) => {
-    state.stockFilter = event.target.value;
     renderProducts();
   });
 }
