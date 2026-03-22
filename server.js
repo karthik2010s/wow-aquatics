@@ -33,6 +33,7 @@ const seedProducts = [
     category: "fish",
     price: 18,
     stock: 14,
+    imageUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80",
     description: "A peaceful schooling fish bundle for planted community tanks.",
     meta: "Min tank: 15 gal | Temperament: peaceful",
   },
@@ -41,6 +42,7 @@ const seedProducts = [
     category: "equipment",
     price: 42,
     stock: 6,
+    imageUrl: "https://images.unsplash.com/photo-1520637836862-4d197d17c35a?auto=format&fit=crop&w=1200&q=80",
     description: "Compact setup with filter, light, and conditioner essentials.",
     meta: "Best for beginners | Nano tank ready",
   },
@@ -49,6 +51,7 @@ const seedProducts = [
     category: "plants",
     price: 9,
     stock: 21,
+    imageUrl: "https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=1200&q=80",
     description: "Hardy live moss for shrimp tanks, driftwood, and fry cover.",
     meta: "Low light | Beginner friendly",
   },
@@ -57,6 +60,7 @@ const seedProducts = [
     category: "equipment",
     price: 95,
     stock: 3,
+    imageUrl: "https://images.unsplash.com/photo-1521207418485-99c705420785?auto=format&fit=crop&w=1200&q=80",
     description: "Quiet high-flow filter for clear water in mid-size display tanks.",
     meta: "For 40-75 gal tanks",
   },
@@ -65,6 +69,7 @@ const seedProducts = [
     category: "fish",
     price: 16,
     stock: 10,
+    imageUrl: "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?auto=format&fit=crop&w=1200&q=80",
     description: "Bright community guppies selected for active, colorful displays.",
     meta: "Livebearer | Great for family tanks",
   },
@@ -73,6 +78,7 @@ const seedProducts = [
     category: "care",
     price: 24,
     stock: 12,
+    imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80",
     description: "Water conditioner, bacteria starter, and algae control in one set.",
     meta: "Weekly maintenance bundle",
   },
@@ -81,6 +87,7 @@ const seedProducts = [
     category: "plants",
     price: 12,
     stock: 8,
+    imageUrl: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1200&q=80",
     description: "Lush rooted plant that adds height and movement to freshwater tanks.",
     meta: "Background plant | Moderate growth",
   },
@@ -89,6 +96,7 @@ const seedProducts = [
     category: "care",
     price: 60,
     stock: 5,
+    imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
     description: "Book a maintenance slot for water testing, cleanup, and filter rinsing.",
     meta: "Service slot | In-store team visit",
   },
@@ -100,6 +108,7 @@ const marketplaceDemoProducts = [
     category: "electronics",
     price: 2499,
     stock: 18,
+    imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80",
     description: "Bluetooth over-ear headphones with deep bass and all-day battery life.",
     meta: "Brand: SonicBeat | Color: Black",
   },
@@ -108,6 +117,7 @@ const marketplaceDemoProducts = [
     category: "home",
     price: 899,
     stock: 25,
+    imageUrl: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
     description: "Touch-controlled desk lamp with brightness levels and USB charging port.",
     meta: "Warm + cool light modes",
   },
@@ -116,6 +126,7 @@ const marketplaceDemoProducts = [
     category: "fashion",
     price: 1899,
     stock: 20,
+    imageUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80",
     description: "Lightweight everyday sneakers with breathable mesh and cushioned sole.",
     meta: "Sizes: 6-10 | Unisex",
   },
@@ -124,6 +135,7 @@ const marketplaceDemoProducts = [
     category: "beauty",
     price: 699,
     stock: 16,
+    imageUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
     description: "Face wash, serum, and moisturizer bundle for daily skincare.",
     meta: "Suitable for normal skin",
   },
@@ -132,6 +144,7 @@ const marketplaceDemoProducts = [
     category: "grocery",
     price: 1299,
     stock: 14,
+    imageUrl: "https://images.unsplash.com/photo-1514517220017-8ce97a34a7b6?auto=format&fit=crop&w=1200&q=80",
     description: "Mixed almonds, cashews, raisins, and pistachios in a gift-ready box.",
     meta: "500g pack",
   },
@@ -140,6 +153,7 @@ const marketplaceDemoProducts = [
     category: "toys",
     price: 1099,
     stock: 22,
+    imageUrl: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1200&q=80",
     description: "Creative building toy set for kids with colorful pieces and storage box.",
     meta: "Ages 5+",
   },
@@ -148,6 +162,7 @@ const marketplaceDemoProducts = [
     category: "office",
     price: 799,
     stock: 19,
+    imageUrl: "https://images.unsplash.com/photo-1505843513577-22bb7d21e455?auto=format&fit=crop&w=1200&q=80",
     description: "Memory foam back and seat support cushion for long work hours.",
     meta: "Portable design",
   },
@@ -156,6 +171,7 @@ const marketplaceDemoProducts = [
     category: "sports",
     price: 999,
     stock: 17,
+    imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80",
     description: "Anti-slip yoga mat with carrying strap for home and studio workouts.",
     meta: "6 mm thickness",
   },
@@ -206,6 +222,7 @@ function sanitizeProduct(product) {
     category: String(product.category || "").trim(),
     price: Number(product.price),
     stock: Number(product.stock),
+    imageUrl: String(product.imageUrl || "").trim(),
     description: String(product.description || "").trim(),
     meta: String(product.meta || "").trim(),
   };
@@ -219,10 +236,16 @@ async function initializeDatabase() {
       category TEXT NOT NULL,
       price NUMERIC(10, 2) NOT NULL,
       stock INTEGER NOT NULL DEFAULT 0,
+      image_url TEXT NOT NULL DEFAULT '',
       description TEXT NOT NULL,
       meta TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE products
+    ADD COLUMN IF NOT EXISTS image_url TEXT NOT NULL DEFAULT '';
   `);
 
   await pool.query(`
@@ -239,17 +262,26 @@ async function initializeDatabase() {
   `);
 
   const result = await pool.query("SELECT COUNT(*)::int AS count FROM products");
-  if (result.rows[0].count > 0) {
-    return;
+  if (result.rows[0].count === 0) {
+    for (const product of seedProducts) {
+      await pool.query(
+        `
+          INSERT INTO products (name, category, price, stock, image_url, description, meta)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `,
+        [product.name, product.category, product.price, product.stock, product.imageUrl || "", product.description, product.meta]
+      );
+    }
   }
 
-  for (const product of seedProducts) {
+  for (const product of [...seedProducts, ...marketplaceDemoProducts]) {
     await pool.query(
       `
-        INSERT INTO products (name, category, price, stock, description, meta)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        UPDATE products
+        SET image_url = $2
+        WHERE LOWER(name) = LOWER($1) AND COALESCE(image_url, '') = ''
       `,
-      [product.name, product.category, product.price, product.stock, product.description, product.meta]
+      [product.name, product.imageUrl || ""]
     );
   }
 }
@@ -257,7 +289,7 @@ async function initializeDatabase() {
 async function getProducts() {
   const result = await pool.query(
     `
-      SELECT id::int AS id, name, category, price::float8 AS price, stock, description, meta
+      SELECT id::int AS id, name, category, price::float8 AS price, stock, image_url AS "imageUrl", description, meta
       FROM products
       ORDER BY created_at DESC, id DESC
     `
@@ -332,10 +364,10 @@ app.post("/api/admin/load-marketplace-demo", requireAdmin, async (_req, res) => 
 
       await pool.query(
         `
-          INSERT INTO products (name, category, price, stock, description, meta)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          INSERT INTO products (name, category, price, stock, image_url, description, meta)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
         `,
-        [product.name, product.category, product.price, product.stock, product.description, product.meta]
+        [product.name, product.category, product.price, product.stock, product.imageUrl || "", product.description, product.meta]
       );
     }
 
@@ -363,11 +395,11 @@ app.post("/api/products", requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `
-        INSERT INTO products (name, category, price, stock, description, meta)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id::int AS id, name, category, price::float8 AS price, stock, description, meta
+        INSERT INTO products (name, category, price, stock, image_url, description, meta)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING id::int AS id, name, category, price::float8 AS price, stock, image_url AS "imageUrl", description, meta
       `,
-      [product.name, product.category, product.price, product.stock, product.description, product.meta]
+      [product.name, product.category, product.price, product.stock, product.imageUrl || "", product.description, product.meta]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -385,7 +417,7 @@ app.patch("/api/products/:id/stock", requireAdmin, async (req, res) => {
         UPDATE products
         SET stock = GREATEST(0, stock + $2)
         WHERE id = $1
-        RETURNING id::int AS id, name, category, price::float8 AS price, stock, description, meta
+        RETURNING id::int AS id, name, category, price::float8 AS price, stock, image_url AS "imageUrl", description, meta
       `,
       [productId, change]
     );

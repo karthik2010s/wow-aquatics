@@ -65,6 +65,11 @@ function formatPrice(amount) {
   return `Rs. ${amount}`;
 }
 
+function getPlaceholderImage(product) {
+  const label = encodeURIComponent(getCategoryLabel(product.category || "Product"));
+  return `https://placehold.co/800x550/fff1b8/7b6436?text=${label}`;
+}
+
 function getInventoryState(stock) {
   if (stock <= 0) {
     return { label: "Sold Out", className: "sold-out" };
@@ -165,6 +170,7 @@ function renderProducts() {
     const inventory = getInventoryState(product.stock);
     const node = template.content.firstElementChild.cloneNode(true);
     const addButton = node.querySelector(".add-button");
+    const image = node.querySelector(".product-image");
 
     node.querySelector(".product-category").textContent = formatCategory(product.category);
     node.querySelector(".product-price").textContent = formatPrice(product.price);
@@ -173,6 +179,15 @@ function renderProducts() {
     node.querySelector(
       ".product-meta"
     ).innerHTML = `${product.meta}<br /><span class="inventory-badge ${inventory.className}">${inventory.label} - ${product.stock} left</span>`;
+    image.src = product.imageUrl || getPlaceholderImage(product);
+    image.alt = product.name;
+    image.addEventListener(
+      "error",
+      () => {
+        image.src = getPlaceholderImage(product);
+      },
+      { once: true }
+    );
 
     addButton.dataset.productId = product.id;
     addButton.disabled = product.stock <= 0;
@@ -411,6 +426,7 @@ async function createProduct(event) {
     category: document.getElementById("product-category").value,
     price: Number(document.getElementById("product-price").value),
     stock: Number(document.getElementById("product-stock").value),
+    imageUrl: document.getElementById("product-image-url").value.trim(),
     description: document.getElementById("product-description").value.trim(),
     meta: document.getElementById("product-meta").value.trim(),
   };

@@ -162,6 +162,7 @@
                 </datalist>
                 <input id="product-price" type="number" min="1" placeholder="Price" required />
                 <input id="product-stock" type="number" min="0" placeholder="Stock quantity" required />
+                <input id="product-image-url" type="url" placeholder="Product image URL" />
                 <textarea id="product-description" placeholder="Short product description" required></textarea>
                 <input id="product-meta" type="text" placeholder="Feature note, size, color, or brand" required />
                 <button class="checkout-button" type="submit">Add product</button>
@@ -252,6 +253,9 @@
 
     <template id="product-card-template">
       <article class="product-card">
+        <div class="product-image-wrap">
+          <img class="product-image" alt="" loading="lazy" />
+        </div>
         <div class="product-top">
           <p class="product-category"></p>
           <span class="product-price"></span>
