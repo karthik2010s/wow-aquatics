@@ -127,24 +127,16 @@ async function apiFetch(url, options = {}) {
     headers,
     ...options,
   });
-  const contentType = response.headers.get("content-type") || "";
 
   if (!response.ok) {
     let message = "Request failed";
     try {
-      if (!contentType.includes("application/json")) {
-        throw new Error("non-json");
-      }
       const data = await response.json();
       message = data.error || message;
     } catch {
-      message = "Store is updating. Please refresh in a moment.";
+      message = response.statusText || message;
     }
     throw new Error(message);
-  }
-
-  if (!contentType.includes("application/json")) {
-    throw new Error("Store is updating. Please refresh in a moment.");
   }
 
   return response.json();
