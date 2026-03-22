@@ -738,6 +738,29 @@ app.patch("/api/products/:id/stock", requireAdmin, async (req, res) => {
   }
 });
 
+app.delete("/api/products/:id", requireAdmin, async (req, res) => {
+  const productId = Number(req.params.id);
+
+  try {
+    const result = await pool.query(
+      `
+        DELETE FROM products
+        WHERE id = $1
+        RETURNING id::int AS id, name
+      `,
+      [productId]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Product not found." });
+    }
+
+    res.json({ success: true, deletedProduct: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete product." });
+  }
+});
+
 app.get("/api/orders", requireAdmin, async (_req, res) => {
   try {
     res.json(await getOrders());

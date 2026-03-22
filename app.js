@@ -494,6 +494,7 @@ function renderInventory() {
       <div class="stock-controls">
         <button class="stock-button" type="button" data-stock-action="decrease" data-product-id="${product.id}">-1 stock</button>
         <button class="stock-button" type="button" data-stock-action="increase" data-product-id="${product.id}">+1 stock</button>
+        <button class="remove-button" type="button" data-stock-action="delete" data-product-id="${product.id}">Delete product</button>
       </div>
     `;
     inventoryList.appendChild(item);
@@ -799,6 +800,24 @@ async function createOrder(event) {
   }
 }
 
+async function deleteProduct(productId) {
+  try {
+    await apiFetch(`/api/products/${productId}`, {
+      method: "DELETE",
+    });
+    state.products = state.products.filter((product) => product.id !== productId);
+    state.cart = state.cart.filter((item) => item.productId !== productId);
+    renderFilters();
+    renderProducts();
+    renderCart();
+    renderInventory();
+    renderDashboardSummary();
+    setStatus("Product removed successfully");
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
 async function updateOrderStatus(orderId, direction) {
   try {
     await apiFetch(`/api/orders/${orderId}/status`, {
@@ -1015,6 +1034,11 @@ inventoryList.addEventListener("click", (event) => {
   }
 
   const productId = Number(button.dataset.productId);
+  if (button.dataset.stockAction === "delete") {
+    deleteProduct(productId);
+    return;
+  }
+
   const change = button.dataset.stockAction === "increase" ? 1 : -1;
   adjustStock(productId, change);
 });
