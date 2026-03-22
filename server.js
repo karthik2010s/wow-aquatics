@@ -8,6 +8,10 @@ const PORT = process.env.PORT || 3000;
 const INDEX_FILE = path.join(__dirname, "index.html");
 const STYLES_FILE = path.join(__dirname, "styles.css");
 const APP_FILE = path.join(__dirname, "app.js");
+const MANIFEST_FILE = path.join(__dirname, "manifest.webmanifest");
+const SW_FILE = path.join(__dirname, "sw.js");
+const APP_ICON_FILE = path.join(__dirname, "icons", "icon.svg");
+const APP_MASKABLE_ICON_FILE = path.join(__dirname, "icons", "icon-maskable.svg");
 const DATABASE_URL = process.env.DATABASE_URL;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 const SESSION_SECRET = process.env.SESSION_SECRET || "change-this-admin-secret";
@@ -502,6 +506,27 @@ app.get("/styles.css", (_req, res) => {
 
 app.get("/app.js", (_req, res) => {
   res.sendFile(APP_FILE);
+});
+
+app.get("/manifest.webmanifest", (_req, res) => {
+  res.type("application/manifest+json");
+  res.sendFile(MANIFEST_FILE);
+});
+
+app.get("/sw.js", (_req, res) => {
+  res.type("application/javascript");
+  res.set("Cache-Control", "no-cache");
+  res.sendFile(SW_FILE);
+});
+
+app.get("/icons/icon.svg", (_req, res) => {
+  res.type("image/svg+xml");
+  res.sendFile(APP_ICON_FILE);
+});
+
+app.get("/icons/icon-maskable.svg", (_req, res) => {
+  res.type("image/svg+xml");
+  res.sendFile(APP_MASKABLE_ICON_FILE);
 });
 
 app.get("/api/customer/session", async (req, res) => {

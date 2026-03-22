@@ -70,6 +70,8 @@ const customerRegisterPhone = document.getElementById("customer-register-phone")
 const customerRegisterAddress = document.getElementById("customer-register-address");
 const customerRegisterPassword = document.getElementById("customer-register-password");
 const customerPhoneInput = document.getElementById("customer-phone");
+const installAppButton = document.getElementById("install-app");
+let deferredInstallPrompt = null;
 
 function openCart() {
   cartDrawer.classList.add("open");
@@ -79,6 +81,21 @@ function openCart() {
 function closeCartDrawer() {
   cartDrawer.classList.remove("open");
   cartDrawer.setAttribute("aria-hidden", "true");
+}
+
+function updateInstallButtonVisibility(visible) {
+  if (!installAppButton) {
+    return;
+  }
+
+  installAppButton.classList.toggle("hidden", !visible);
+}
+
+function isIosInstallHintAvailable() {
+  const ua = window.navigator.userAgent.toLowerCase();
+  const isIos = /iphone|ipad|ipod/.test(ua);
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+  return isIos && !isStandalone;
 }
 
 function getCategoryLabel(category) {
@@ -983,6 +1000,18 @@ async function logoutCustomer() {
   }
 }
 
+async function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  try {
+    await navigator.serviceWorker.register("/sw.js");
+  } catch (error) {
+    console.error("Service worker registration failed", error);
+  }
+}
+
 if (searchInput) {
   searchInput.addEventListener("input", (event) => {
     state.query = event.target.value.trim();
@@ -1104,6 +1133,19 @@ customerRegisterForm.addEventListener("submit", registerCustomer);
 customerLogoutButton.addEventListener("click", logoutCustomer);
 cartButton.addEventListener("click", openCart);
 closeCart.addEventListener("click", closeCartDrawer);
+installAppButton.addEventListener("click", async () => {
+  if (!deferredInstallPrompt) {
+    if (isIosInstallHintAvailable()) {
+      setStatus("On iPhone, tap Share and then Add to Home Screen.");
+    }
+    return;
+  }
+
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  updateInstallButtonVisibility(false);
+});
 customerScrollButton.addEventListener("click", () => {
   document.getElementById("customer-access").scrollIntoView({ behavior: "smooth" });
 });
@@ -1120,6 +1162,20 @@ checkoutButton.addEventListener("click", () => {
   );
 });
 
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  updateInstallButtonVisibility(true);
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  updateInstallButtonVisibility(false);
+  setStatus("App installed successfully");
+});
+
 renderAdminState();
 renderCustomerState();
+updateInstallButtonVisibility(isIosInstallHintAvailable());
+registerServiceWorker();
 Promise.all([loadAdminSession(), loadCustomerSession()]).then(loadRemoteData);
