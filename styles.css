@@ -410,6 +410,31 @@ h3 {
   background: rgba(255, 255, 255, 0.8);
 }
 
+.file-input {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.file-input input {
+  width: 100%;
+}
+
+.image-preview {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.55);
+  max-width: 240px;
+}
+
+.image-preview img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
 .admin-form textarea {
   min-height: 100px;
   resize: vertical;

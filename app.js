@@ -38,6 +38,9 @@ const adminLogoutButton = document.getElementById("admin-logout");
 const adminStatusText = document.getElementById("admin-status-text");
 const adminScrollButton = document.getElementById("admin-scroll");
 const loadMarketplaceDemoButton = document.getElementById("load-marketplace-demo");
+const productImageFileInput = document.getElementById("product-image-file");
+const imagePreviewWrap = document.getElementById("image-preview-wrap");
+const imagePreview = document.getElementById("image-preview");
 
 function openCart() {
   cartDrawer.classList.add("open");
@@ -68,6 +71,20 @@ function formatPrice(amount) {
 function getPlaceholderImage(product) {
   const label = encodeURIComponent(getCategoryLabel(product.category || "Product"));
   return `https://placehold.co/800x550/fff1b8/7b6436?text=${label}`;
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Failed to read image file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function clearImagePreview() {
+  imagePreview.src = "";
+  imagePreviewWrap.classList.add("hidden");
 }
 
 function getInventoryState(stock) {
@@ -421,12 +438,29 @@ async function loadAdminSession() {
 async function createProduct(event) {
   event.preventDefault();
 
+  let imageUrl = "";
+  const imageFile = productImageFileInput.files[0];
+
+  if (imageFile) {
+    if (imageFile.size > 2 * 1024 * 1024) {
+      setStatus("Image must be 2 MB or smaller");
+      return;
+    }
+
+    try {
+      imageUrl = await readFileAsDataUrl(imageFile);
+    } catch (error) {
+      setStatus(error.message);
+      return;
+    }
+  }
+
   const payload = {
     name: document.getElementById("product-name").value.trim(),
     category: document.getElementById("product-category").value,
     price: Number(document.getElementById("product-price").value),
     stock: Number(document.getElementById("product-stock").value),
-    imageUrl: document.getElementById("product-image-url").value.trim(),
+    imageUrl,
     description: document.getElementById("product-description").value.trim(),
     meta: document.getElementById("product-meta").value.trim(),
   };
@@ -437,6 +471,7 @@ async function createProduct(event) {
       body: JSON.stringify(payload),
     });
     productForm.reset();
+    clearImagePreview();
     await loadRemoteData();
     setStatus("Product added to shared inventory");
   } catch (error) {
@@ -619,6 +654,29 @@ ordersList.addEventListener("click", (event) => {
 });
 
 productForm.addEventListener("submit", createProduct);
+productImageFileInput.addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) {
+    clearImagePreview();
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    clearImagePreview();
+    setStatus("Image must be 2 MB or smaller");
+    productImageFileInput.value = "";
+    return;
+  }
+
+  try {
+    const result = await readFileAsDataUrl(file);
+    imagePreview.src = result;
+    imagePreviewWrap.classList.remove("hidden");
+  } catch (error) {
+    clearImagePreview();
+    setStatus(error.message);
+  }
+});
 orderForm.addEventListener("submit", createOrder);
 adminLoginForm.addEventListener("submit", loginAdmin);
 adminLogoutButton.addEventListener("click", logoutAdmin);

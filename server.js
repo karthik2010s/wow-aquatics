@@ -177,7 +177,7 @@ const marketplaceDemoProducts = [
   },
 ];
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 function parseCookies(cookieHeader = "") {
   return cookieHeader.split(";").reduce((cookies, item) => {
