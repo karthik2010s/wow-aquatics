@@ -49,11 +49,11 @@ const adminPasswordInput = document.getElementById("admin-password");
 const adminSessionCard = document.getElementById("admin-session-card");
 const adminLogoutButton = document.getElementById("admin-logout");
 const adminStatusText = document.getElementById("admin-status-text");
+const adminScrollButton = document.getElementById("admin-scroll");
 const loadMarketplaceDemoButton = document.getElementById("load-marketplace-demo");
 const productImageFileInput = document.getElementById("product-image-file");
 const imagePreviewWrap = document.getElementById("image-preview-wrap");
 const imagePreview = document.getElementById("image-preview");
-const adminModeEnabled = new URLSearchParams(window.location.search).get("admin") === "1";
 
 function openCart() {
   cartDrawer.classList.add("open");
@@ -811,6 +811,12 @@ adminLogoutButton.addEventListener("click", logoutAdmin);
 loadMarketplaceDemoButton.addEventListener("click", loadMarketplaceDemo);
 cartButton.addEventListener("click", openCart);
 closeCart.addEventListener("click", closeCartDrawer);
+adminScrollButton.addEventListener("click", () => {
+  adminAccessSection.classList.toggle("hidden");
+  if (!adminAccessSection.classList.contains("hidden")) {
+    adminAccessSection.scrollIntoView({ behavior: "smooth" });
+  }
+});
 
 checkoutButton.addEventListener("click", () => {
   document.getElementById("orders").scrollIntoView({ behavior: "smooth" });
@@ -820,10 +826,6 @@ checkoutButton.addEventListener("click", () => {
       : "Add products to the cart before checkout"
   );
 });
-
-if (adminModeEnabled) {
-  adminAccessSection.classList.remove("hidden");
-}
 
 renderAdminState();
 loadAdminSession().then(loadRemoteData);
