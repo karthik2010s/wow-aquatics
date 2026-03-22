@@ -1,4 +1,4 @@
-# Wow Aquatics Free Deploy
+# karthik Free Deploy
 
 This app is prepared for free deployment with:
 

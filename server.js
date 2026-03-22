@@ -387,7 +387,7 @@ app.get("*", (_req, res) => {
 initializeDatabase()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Wow Aquatics server running on http://localhost:${PORT}`);
+      console.log(`karthik server running on http://localhost:${PORT}`);
     });
   })
   .catch((error) => {
