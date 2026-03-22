@@ -197,6 +197,42 @@ function createSessionToken() {
   return `${payload}.${signature}`;
 }
 
+function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
+  const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, "sha512").toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, storedValue = "") {
+  const [salt, savedHash] = String(storedValue).split(":");
+  if (!salt || !savedHash || savedHash.length !== 128) {
+    return false;
+  }
+
+  const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, "sha512").toString("hex");
+  return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(savedHash, "hex"));
+}
+
+function createCustomerToken(customerId) {
+  const payload = String(customerId);
+  const signature = crypto.createHmac("sha256", SESSION_SECRET).update(`customer:${payload}`).digest("hex");
+  return `${payload}.${signature}`;
+}
+
+function getCustomerIdFromToken(token = "") {
+  const [customerId, signature] = String(token).split(".");
+  if (!customerId || !signature) {
+    return null;
+  }
+
+  const expected = crypto.createHmac("sha256", SESSION_SECRET).update(`customer:${customerId}`).digest("hex");
+  if (signature !== expected) {
+    return null;
+  }
+
+  const parsed = Number(customerId);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 function isAdminRequest(req) {
   const headerToken = req.headers["x-admin-token"];
   if (headerToken && headerToken === createSessionToken()) {
@@ -211,6 +247,22 @@ function isAdminRequest(req) {
 
   const expectedToken = createSessionToken();
   return token === expectedToken;
+}
+
+function getCustomerIdFromRequest(req) {
+  const headerToken = req.headers["x-customer-token"];
+  const cookieToken = parseCookies(req.headers.cookie).customer_session;
+  return getCustomerIdFromToken(headerToken || cookieToken || "");
+}
+
+function requireCustomer(req, res, next) {
+  const customerId = getCustomerIdFromRequest(req);
+  if (!customerId) {
+    return res.status(401).json({ error: "Customer login required." });
+  }
+
+  req.customerId = customerId;
+  next();
 }
 
 function requireAdmin(req, res, next) {
@@ -237,6 +289,18 @@ function sanitizeProduct(product) {
 
 async function initializeDatabase() {
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS customers (
+      id BIGSERIAL PRIMARY KEY,
+      full_name TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      phone TEXT NOT NULL DEFAULT '',
+      address TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
       id BIGSERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -258,6 +322,7 @@ async function initializeDatabase() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS orders (
       id BIGSERIAL PRIMARY KEY,
+      customer_id BIGINT REFERENCES customers(id) ON DELETE SET NULL,
       customer_name TEXT NOT NULL,
       fulfillment_type TEXT NOT NULL,
       address TEXT NOT NULL,
@@ -266,6 +331,11 @@ async function initializeDatabase() {
       items_summary TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS customer_id BIGINT REFERENCES customers(id) ON DELETE SET NULL;
   `);
 
   const result = await pool.query("SELECT COUNT(*)::int AS count FROM products");
@@ -319,6 +389,46 @@ async function getOrders() {
       ORDER BY created_at DESC, id DESC
     `
   );
+  return result.rows;
+}
+
+async function getCustomerProfile(customerId) {
+  const result = await pool.query(
+    `
+      SELECT
+        id::int AS id,
+        full_name AS "fullName",
+        email,
+        phone,
+        address
+      FROM customers
+      WHERE id = $1
+      LIMIT 1
+    `,
+    [customerId]
+  );
+
+  return result.rows[0] || null;
+}
+
+async function getCustomerOrders(customerId) {
+  const result = await pool.query(
+    `
+      SELECT
+        id::text AS id,
+        customer_name AS "customerName",
+        fulfillment_type AS "fulfillmentType",
+        address,
+        total::float8 AS total,
+        status_index AS "statusIndex",
+        items_summary AS "itemsSummary"
+      FROM orders
+      WHERE customer_id = $1
+      ORDER BY created_at DESC, id DESC
+    `,
+    [customerId]
+  );
+
   return result.rows;
 }
 
@@ -382,6 +492,137 @@ app.get("/styles.css", (_req, res) => {
 
 app.get("/app.js", (_req, res) => {
   res.sendFile(APP_FILE);
+});
+
+app.get("/api/customer/session", async (req, res) => {
+  try {
+    const customerId = getCustomerIdFromRequest(req);
+    if (!customerId) {
+      return res.json({ authenticated: false, customer: null });
+    }
+
+    const customer = await getCustomerProfile(customerId);
+    if (!customer) {
+      return res.json({ authenticated: false, customer: null });
+    }
+
+    res.json({ authenticated: true, customer });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to load customer session." });
+  }
+});
+
+app.post("/api/customer/register", async (req, res) => {
+  const fullName = String(req.body.fullName || "").trim();
+  const email = String(req.body.email || "")
+    .trim()
+    .toLowerCase();
+  const phone = String(req.body.phone || "").trim();
+  const address = String(req.body.address || "").trim();
+  const password = String(req.body.password || "");
+
+  if (!fullName || !email || !password) {
+    return res.status(400).json({ error: "Name, email, and password are required." });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: "Password must be at least 6 characters." });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+        INSERT INTO customers (full_name, email, password_hash, phone, address)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id::int AS id, full_name AS "fullName", email, phone, address
+      `,
+      [fullName, email, hashPassword(password), phone, address]
+    );
+
+    const token = createCustomerToken(result.rows[0].id);
+    const secureCookie = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    res.setHeader(
+      "Set-Cookie",
+      `customer_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${secureCookie}`
+    );
+    res.status(201).json({ authenticated: true, token, customer: result.rows[0] });
+  } catch (error) {
+    const duplicate = error.code === "23505";
+    res.status(duplicate ? 409 : 500).json({
+      error: duplicate ? "That email is already registered." : "Failed to create customer account.",
+    });
+  }
+});
+
+app.post("/api/customer/login", async (req, res) => {
+  const email = String(req.body.email || "")
+    .trim()
+    .toLowerCase();
+  const password = String(req.body.password || "");
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required." });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+        SELECT
+          id::int AS id,
+          full_name AS "fullName",
+          email,
+          phone,
+          address,
+          password_hash AS "passwordHash"
+        FROM customers
+        WHERE email = $1
+        LIMIT 1
+      `,
+      [email]
+    );
+
+    const customer = result.rows[0];
+    if (!customer || !verifyPassword(password, customer.passwordHash)) {
+      return res.status(401).json({ error: "Invalid email or password." });
+    }
+
+    const token = createCustomerToken(customer.id);
+    const secureCookie = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    res.setHeader(
+      "Set-Cookie",
+      `customer_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${secureCookie}`
+    );
+    res.json({
+      authenticated: true,
+      token,
+      customer: {
+        id: customer.id,
+        fullName: customer.fullName,
+        email: customer.email,
+        phone: customer.phone,
+        address: customer.address,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to log in customer." });
+  }
+});
+
+app.post("/api/customer/logout", (_req, res) => {
+  const secureCookie = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `customer_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secureCookie}`
+  );
+  res.json({ authenticated: false });
+});
+
+app.get("/api/customer/orders", requireCustomer, async (req, res) => {
+  try {
+    res.json(await getCustomerOrders(req.customerId));
+  } catch (error) {
+    res.status(500).json({ error: "Failed to load your orders." });
+  }
 });
 
 app.get("/api/admin/session", (req, res) => {
@@ -507,6 +748,7 @@ app.get("/api/orders", requireAdmin, async (_req, res) => {
 
 app.post("/api/orders", async (req, res) => {
   const { customerName, fulfillmentType, address, items } = req.body;
+  const customerId = getCustomerIdFromRequest(req);
 
   if (!customerName || !address || !Array.isArray(items) || !items.length) {
     return res.status(400).json({ error: "Missing order details." });
@@ -563,8 +805,8 @@ app.post("/api/orders", async (req, res) => {
 
     const orderResult = await client.query(
       `
-        INSERT INTO orders (customer_name, fulfillment_type, address, total, status_index, items_summary)
-        VALUES ($1, $2, $3, $4, 0, $5)
+        INSERT INTO orders (customer_id, customer_name, fulfillment_type, address, total, status_index, items_summary)
+        VALUES ($1, $2, $3, $4, $5, 0, $6)
         RETURNING
           id::text AS id,
           customer_name AS "customerName",
@@ -574,7 +816,7 @@ app.post("/api/orders", async (req, res) => {
           status_index AS "statusIndex",
           items_summary AS "itemsSummary"
       `,
-      [String(customerName).trim(), fulfillmentType, String(address).trim(), total, itemsSummary]
+      [customerId, String(customerName).trim(), fulfillmentType, String(address).trim(), total, itemsSummary]
     );
 
     await client.query("COMMIT");

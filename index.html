@@ -25,6 +25,7 @@
               <button class="cart-button" id="cart-button" type="button">
                 Cart <span id="cart-count">0</span>
               </button>
+              <button class="close-button" id="customer-scroll" type="button">Customer</button>
               <button class="close-button" id="admin-scroll" type="button">Admin</button>
             </div>
             <p class="cart-status" id="cart-status" aria-live="polite">Cart is empty</p>
@@ -94,6 +95,52 @@
           <div class="filters" id="filters"></div>
 
           <div class="product-grid" id="product-grid"></div>
+        </section>
+
+        <section class="section customer-section" id="customer-access">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Customer account</p>
+              <h3>Login is optional</h3>
+            </div>
+            <p class="dashboard-note" id="customer-status-text">
+              Continue as guest or sign in to save details and view your order history.
+            </p>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="admin-card" id="customer-auth-card">
+              <h4>Customer login</h4>
+              <form class="admin-form" id="customer-login-form">
+                <input id="customer-login-email" type="email" placeholder="Email address" required />
+                <input id="customer-login-password" type="password" placeholder="Password" required />
+                <button class="checkout-button" type="submit">Login</button>
+              </form>
+
+              <h4>Create account</h4>
+              <form class="admin-form" id="customer-register-form">
+                <input id="customer-register-name" type="text" placeholder="Full name" required />
+                <input id="customer-register-email" type="email" placeholder="Email address" required />
+                <input id="customer-register-phone" type="tel" placeholder="Phone number (optional)" />
+                <input id="customer-register-address" type="text" placeholder="Default address (optional)" />
+                <input id="customer-register-password" type="password" placeholder="Create password" required />
+                <button class="checkout-button" type="submit">Create account</button>
+              </form>
+            </article>
+
+            <article class="admin-card hidden" id="customer-session-card">
+              <h4>My account</h4>
+              <div class="customer-profile" id="customer-profile"></div>
+              <button class="close-button" id="customer-logout" type="button">Logout</button>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="admin-card">
+              <h4>My orders</h4>
+              <div class="orders-list" id="customer-orders-list"></div>
+            </article>
+          </div>
         </section>
 
         <section class="section admin-access-section" id="admin-access">
@@ -218,6 +265,7 @@
               <h4>Customer details</h4>
               <form class="admin-form" id="order-form">
                 <input id="customer-name" type="text" placeholder="Customer name" required />
+                <input id="customer-phone" type="tel" placeholder="Phone number (optional)" />
                 <select id="fulfillment-type" required>
                   <option value="pickup">Store pickup</option>
                   <option value="delivery">Home delivery</option>

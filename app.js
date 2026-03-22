@@ -13,6 +13,9 @@ const state = {
   orders: [],
   isAdmin: false,
   adminToken: window.localStorage.getItem("adminToken") || "",
+  customerToken: window.localStorage.getItem("customerToken") || "",
+  customer: null,
+  customerOrders: [],
   loading: false,
 };
 
@@ -52,6 +55,23 @@ const loadMarketplaceDemoButton = document.getElementById("load-marketplace-demo
 const productImageFileInput = document.getElementById("product-image-file");
 const imagePreviewWrap = document.getElementById("image-preview-wrap");
 const imagePreview = document.getElementById("image-preview");
+const customerScrollButton = document.getElementById("customer-scroll");
+const customerStatusText = document.getElementById("customer-status-text");
+const customerLoginForm = document.getElementById("customer-login-form");
+const customerRegisterForm = document.getElementById("customer-register-form");
+const customerSessionCard = document.getElementById("customer-session-card");
+const customerAuthCard = document.getElementById("customer-auth-card");
+const customerProfile = document.getElementById("customer-profile");
+const customerOrdersList = document.getElementById("customer-orders-list");
+const customerLogoutButton = document.getElementById("customer-logout");
+const customerLoginEmail = document.getElementById("customer-login-email");
+const customerLoginPassword = document.getElementById("customer-login-password");
+const customerRegisterName = document.getElementById("customer-register-name");
+const customerRegisterEmail = document.getElementById("customer-register-email");
+const customerRegisterPhone = document.getElementById("customer-register-phone");
+const customerRegisterAddress = document.getElementById("customer-register-address");
+const customerRegisterPassword = document.getElementById("customer-register-password");
+const customerPhoneInput = document.getElementById("customer-phone");
 
 function openCart() {
   cartDrawer.classList.add("open");
@@ -120,6 +140,10 @@ async function apiFetch(url, options = {}) {
     headers["X-Admin-Token"] = state.adminToken;
   }
 
+  if (state.customerToken) {
+    headers["X-Customer-Token"] = state.customerToken;
+  }
+
   const response = await fetch(url, {
     credentials: "same-origin",
     headers,
@@ -142,6 +166,77 @@ async function apiFetch(url, options = {}) {
 
 function setStatus(message) {
   cartStatus.textContent = message;
+}
+
+function renderCustomerOrders() {
+  customerOrdersList.innerHTML = "";
+
+  if (!state.customer) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "Login is optional. Sign in to view your previous orders here.";
+    customerOrdersList.appendChild(empty);
+    return;
+  }
+
+  if (!state.customerOrders.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No customer orders yet. Your future orders will appear here.";
+    customerOrdersList.appendChild(empty);
+    return;
+  }
+
+  state.customerOrders.forEach((order) => {
+    const steps = orderStatuses[order.fulfillmentType];
+    const card = document.createElement("article");
+    card.className = "order-card";
+    card.innerHTML = `
+      <div class="order-header">
+        <div>
+          <p><strong>Order #${order.id}</strong></p>
+          <p class="order-status-label">${order.itemsSummary}</p>
+        </div>
+        <span class="inventory-badge in-stock">${formatCategory(order.fulfillmentType)}</span>
+      </div>
+      <div class="order-meta">
+        <p class="order-status-label">${order.address}</p>
+        <p class="order-status-label">Total: ${formatPrice(order.total)}</p>
+      </div>
+      <p class="order-status-label">Status: ${steps[order.statusIndex]}</p>
+    `;
+    customerOrdersList.appendChild(card);
+  });
+}
+
+function renderCustomerState() {
+  const isLoggedIn = Boolean(state.customer);
+  customerAuthCard.classList.toggle("hidden", isLoggedIn);
+  customerSessionCard.classList.toggle("hidden", !isLoggedIn);
+  customerStatusText.textContent = isLoggedIn
+    ? "Logged in. Your checkout details are pre-filled and your orders are saved to this account."
+    : "Continue as guest or sign in to save details and view your order history.";
+
+  if (!isLoggedIn) {
+    customerProfile.innerHTML = "";
+    renderCustomerOrders();
+    return;
+  }
+
+  customerProfile.innerHTML = `
+    <p><strong>${state.customer.fullName}</strong></p>
+    <p>${state.customer.email}</p>
+    <p>${state.customer.phone || "Phone not added yet"}</p>
+    <p>${state.customer.address || "No default address saved"}</p>
+  `;
+
+  document.getElementById("customer-name").value = state.customer.fullName || "";
+  document.getElementById("customer-address").value = state.customer.address || "";
+  if (customerPhoneInput) {
+    customerPhoneInput.value = state.customer.phone || "";
+  }
+
+  renderCustomerOrders();
 }
 
 function renderAdminState() {
@@ -537,6 +632,23 @@ async function loadRemoteData() {
   }
 }
 
+async function loadCustomerOrders() {
+  if (!state.customer) {
+    state.customerOrders = [];
+    renderCustomerOrders();
+    return;
+  }
+
+  try {
+    state.customerOrders = await apiFetch("/api/customer/orders");
+    renderCustomerOrders();
+  } catch (error) {
+    state.customerOrders = [];
+    renderCustomerOrders();
+    setStatus(error.message);
+  }
+}
+
 async function loadAdminSession() {
   try {
     const session = await apiFetch("/api/admin/session");
@@ -552,6 +664,26 @@ async function loadAdminSession() {
     window.localStorage.removeItem("adminToken");
     renderAdminState();
   }
+}
+
+async function loadCustomerSession() {
+  try {
+    const session = await apiFetch("/api/customer/session");
+    if (!session.authenticated) {
+      state.customer = null;
+      state.customerToken = "";
+      window.localStorage.removeItem("customerToken");
+    } else {
+      state.customer = session.customer;
+    }
+  } catch {
+    state.customer = null;
+    state.customerToken = "";
+    window.localStorage.removeItem("customerToken");
+  }
+
+  renderCustomerState();
+  await loadCustomerOrders();
 }
 
 async function createProduct(event) {
@@ -639,10 +771,12 @@ async function createOrder(event) {
     return;
   }
 
+  const customerNameInput = document.getElementById("customer-name");
+  const customerAddressInput = document.getElementById("customer-address");
   const payload = {
-    customerName: document.getElementById("customer-name").value.trim(),
+    customerName: customerNameInput.value.trim() || state.customer?.fullName || "",
     fulfillmentType: document.getElementById("fulfillment-type").value,
-    address: document.getElementById("customer-address").value.trim(),
+    address: customerAddressInput.value.trim() || state.customer?.address || "",
     items: state.cart,
   };
 
@@ -655,6 +789,10 @@ async function createOrder(event) {
     orderForm.reset();
     closeCartDrawer();
     await loadRemoteData();
+    await loadCustomerOrders();
+    if (state.customer) {
+      renderCustomerState();
+    }
     setStatus(`${formatCategory(payload.fulfillmentType)} order placed successfully`);
   } catch (error) {
     setStatus(error.message);
@@ -723,6 +861,80 @@ async function loadMarketplaceDemo() {
     });
     await loadRemoteData();
     setStatus("Marketplace demo products added");
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+async function loginCustomer(event) {
+  event.preventDefault();
+
+  try {
+    const result = await apiFetch("/api/customer/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: customerLoginEmail.value.trim(),
+        password: customerLoginPassword.value,
+      }),
+    });
+
+    state.customerToken = result.token || "";
+    state.customer = result.customer || null;
+    state.customerOrders = [];
+    if (state.customerToken) {
+      window.localStorage.setItem("customerToken", state.customerToken);
+    }
+    customerLoginForm.reset();
+    renderCustomerState();
+    await loadCustomerOrders();
+    setStatus("Customer account logged in");
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+async function registerCustomer(event) {
+  event.preventDefault();
+
+  try {
+    const result = await apiFetch("/api/customer/register", {
+      method: "POST",
+      body: JSON.stringify({
+        fullName: customerRegisterName.value.trim(),
+        email: customerRegisterEmail.value.trim(),
+        phone: customerRegisterPhone.value.trim(),
+        address: customerRegisterAddress.value.trim(),
+        password: customerRegisterPassword.value,
+      }),
+    });
+
+    state.customerToken = result.token || "";
+    state.customer = result.customer || null;
+    state.customerOrders = [];
+    if (state.customerToken) {
+      window.localStorage.setItem("customerToken", state.customerToken);
+    }
+    customerRegisterForm.reset();
+    renderCustomerState();
+    await loadCustomerOrders();
+    setStatus("Customer account created");
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+async function logoutCustomer() {
+  try {
+    await apiFetch("/api/customer/logout", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    state.customer = null;
+    state.customerToken = "";
+    state.customerOrders = [];
+    window.localStorage.removeItem("customerToken");
+    renderCustomerState();
+    setStatus("Customer account logged out");
   } catch (error) {
     setStatus(error.message);
   }
@@ -846,8 +1058,14 @@ orderForm.addEventListener("submit", createOrder);
 adminLoginForm.addEventListener("submit", loginAdmin);
 adminLogoutButton.addEventListener("click", logoutAdmin);
 loadMarketplaceDemoButton.addEventListener("click", loadMarketplaceDemo);
+customerLoginForm.addEventListener("submit", loginCustomer);
+customerRegisterForm.addEventListener("submit", registerCustomer);
+customerLogoutButton.addEventListener("click", logoutCustomer);
 cartButton.addEventListener("click", openCart);
 closeCart.addEventListener("click", closeCartDrawer);
+customerScrollButton.addEventListener("click", () => {
+  document.getElementById("customer-access").scrollIntoView({ behavior: "smooth" });
+});
 adminScrollButton.addEventListener("click", () => {
   document.getElementById("admin-access").scrollIntoView({ behavior: "smooth" });
 });
@@ -862,4 +1080,5 @@ checkoutButton.addEventListener("click", () => {
 });
 
 renderAdminState();
-loadAdminSession().then(loadRemoteData);
+renderCustomerState();
+Promise.all([loadAdminSession(), loadCustomerSession()]).then(loadRemoteData);
