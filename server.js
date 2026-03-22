@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const path = require("path");
 const { Pool } = require("pg");
 
@@ -8,6 +9,8 @@ const INDEX_FILE = path.join(__dirname, "index.html");
 const STYLES_FILE = path.join(__dirname, "styles.css");
 const APP_FILE = path.join(__dirname, "app.js");
 const DATABASE_URL = process.env.DATABASE_URL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const SESSION_SECRET = process.env.SESSION_SECRET || "change-this-admin-secret";
 
 if (!DATABASE_URL) {
   console.error("Missing DATABASE_URL environment variable.");
@@ -92,6 +95,43 @@ const seedProducts = [
 ];
 
 app.use(express.json());
+
+function parseCookies(cookieHeader = "") {
+  return cookieHeader.split(";").reduce((cookies, item) => {
+    const [key, ...rest] = item.trim().split("=");
+    if (!key) {
+      return cookies;
+    }
+
+    cookies[key] = decodeURIComponent(rest.join("="));
+    return cookies;
+  }, {});
+}
+
+function createSessionToken() {
+  const payload = "admin";
+  const signature = crypto.createHmac("sha256", SESSION_SECRET).update(payload).digest("hex");
+  return `${payload}.${signature}`;
+}
+
+function isAdminRequest(req) {
+  const cookies = parseCookies(req.headers.cookie);
+  const token = cookies.admin_session;
+  if (!token) {
+    return false;
+  }
+
+  const expectedToken = createSessionToken();
+  return token === expectedToken;
+}
+
+function requireAdmin(req, res, next) {
+  if (!isAdminRequest(req)) {
+    return res.status(401).json({ error: "Admin login required." });
+  }
+
+  next();
+}
 
 function sanitizeProduct(product) {
   return {
@@ -188,6 +228,33 @@ app.get("/app.js", (_req, res) => {
   res.sendFile(APP_FILE);
 });
 
+app.get("/api/admin/session", (req, res) => {
+  res.json({ authenticated: isAdminRequest(req) });
+});
+
+app.post("/api/admin/login", (req, res) => {
+  const password = String(req.body.password || "");
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Incorrect admin password." });
+  }
+
+  const secureCookie = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `admin_session=${createSessionToken()}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secureCookie}`
+  );
+  res.json({ authenticated: true });
+});
+
+app.post("/api/admin/logout", (_req, res) => {
+  const secureCookie = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `admin_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secureCookie}`
+  );
+  res.json({ authenticated: false });
+});
+
 app.get("/api/products", async (_req, res) => {
   try {
     res.json(await getProducts());
@@ -196,7 +263,7 @@ app.get("/api/products", async (_req, res) => {
   }
 });
 
-app.post("/api/products", async (req, res) => {
+app.post("/api/products", requireAdmin, async (req, res) => {
   const product = sanitizeProduct(req.body);
 
   if (!product.name || !product.category || !product.description || !product.meta) {
@@ -218,7 +285,7 @@ app.post("/api/products", async (req, res) => {
   }
 });
 
-app.patch("/api/products/:id/stock", async (req, res) => {
+app.patch("/api/products/:id/stock", requireAdmin, async (req, res) => {
   const productId = Number(req.params.id);
   const change = Number(req.body.change || 0);
 
@@ -243,7 +310,7 @@ app.patch("/api/products/:id/stock", async (req, res) => {
   }
 });
 
-app.get("/api/orders", async (_req, res) => {
+app.get("/api/orders", requireAdmin, async (_req, res) => {
   try {
     res.json(await getOrders());
   } catch (error) {
@@ -335,7 +402,7 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
-app.patch("/api/orders/:id/status", async (req, res) => {
+app.patch("/api/orders/:id/status", requireAdmin, async (req, res) => {
   const orderId = Number(req.params.id);
   const direction = Number(req.body.direction || 0);
 

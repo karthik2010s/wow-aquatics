@@ -85,6 +85,12 @@ body::before {
   gap: 8px;
 }
 
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .cart-status {
   margin: 0;
   font-size: 0.9rem;
@@ -443,6 +449,10 @@ h3 {
   gap: 12px;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .story-section {
   align-items: stretch;
 }
@@ -582,6 +592,10 @@ h3 {
 
   .cart-trigger {
     justify-items: start;
+  }
+
+  .header-actions {
+    width: 100%;
   }
 
   .service-grid,

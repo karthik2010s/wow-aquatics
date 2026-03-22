@@ -21,9 +21,12 @@
             <h1>karthik</h1>
           </div>
           <div class="cart-trigger">
-            <button class="cart-button" id="cart-button" type="button">
-              Cart <span id="cart-count">0</span>
-            </button>
+            <div class="header-actions">
+              <button class="cart-button" id="cart-button" type="button">
+                Cart <span id="cart-count">0</span>
+              </button>
+              <button class="close-button" id="admin-scroll" type="button">Admin</button>
+            </div>
             <p class="cart-status" id="cart-status" aria-live="polite">Cart is empty</p>
           </div>
         </nav>
@@ -111,7 +114,33 @@
           <div class="product-grid" id="product-grid"></div>
         </section>
 
-        <section class="section dashboard-section" id="dashboard">
+        <section class="section admin-access-section" id="admin-access">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Admin access</p>
+              <h3>Only admins can manage stock</h3>
+            </div>
+            <p class="dashboard-note" id="admin-status-text">Customers can browse and order, but stock controls stay private.</p>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="admin-card">
+              <h4>Admin sign in</h4>
+              <form class="admin-form" id="admin-login-form">
+                <input id="admin-password" type="password" placeholder="Enter admin password" required />
+                <button class="checkout-button" type="submit">Unlock dashboard</button>
+              </form>
+            </article>
+
+            <article class="admin-card hidden" id="admin-session-card">
+              <h4>Admin session</h4>
+              <p class="dashboard-note">You are signed in as admin. Inventory and order controls are unlocked.</p>
+              <button class="close-button" id="admin-logout" type="button">Logout</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="section dashboard-section hidden" id="dashboard">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Admin dashboard</p>
@@ -170,7 +199,7 @@
               </form>
             </article>
 
-            <article class="admin-card">
+            <article class="admin-card hidden" id="active-orders-card">
               <h4>Active orders</h4>
               <div class="orders-list" id="orders-list"></div>
             </article>

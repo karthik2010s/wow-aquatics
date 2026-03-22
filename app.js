@@ -9,6 +9,7 @@ const state = {
   products: [],
   cart: [],
   orders: [],
+  isAdmin: false,
   loading: false,
 };
 
@@ -28,6 +29,14 @@ const productForm = document.getElementById("product-form");
 const inventoryList = document.getElementById("inventory-list");
 const orderForm = document.getElementById("order-form");
 const ordersList = document.getElementById("orders-list");
+const dashboardSection = document.getElementById("dashboard");
+const activeOrdersCard = document.getElementById("active-orders-card");
+const adminLoginForm = document.getElementById("admin-login-form");
+const adminPasswordInput = document.getElementById("admin-password");
+const adminSessionCard = document.getElementById("admin-session-card");
+const adminLogoutButton = document.getElementById("admin-logout");
+const adminStatusText = document.getElementById("admin-status-text");
+const adminScrollButton = document.getElementById("admin-scroll");
 
 function openCart() {
   cartDrawer.classList.add("open");
@@ -61,6 +70,7 @@ function getInventoryState(stock) {
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {}),
@@ -84,6 +94,16 @@ async function apiFetch(url, options = {}) {
 
 function setStatus(message) {
   cartStatus.textContent = message;
+}
+
+function renderAdminState() {
+  dashboardSection.classList.toggle("hidden", !state.isAdmin);
+  activeOrdersCard.classList.toggle("hidden", !state.isAdmin);
+  adminLoginForm.classList.toggle("hidden", state.isAdmin);
+  adminSessionCard.classList.toggle("hidden", !state.isAdmin);
+  adminStatusText.textContent = state.isAdmin
+    ? "Admin access is active. Inventory and order tracking controls are unlocked."
+    : "Customers can browse and order, but stock controls stay private.";
 }
 
 function renderProducts() {
@@ -314,7 +334,12 @@ async function loadRemoteData() {
   renderCart();
 
   try {
-    const [products, orders] = await Promise.all([apiFetch("/api/products"), apiFetch("/api/orders")]);
+    const requests = [apiFetch("/api/products")];
+    if (state.isAdmin) {
+      requests.push(apiFetch("/api/orders"));
+    }
+
+    const [products, orders = []] = await Promise.all(requests);
     state.products = products;
     state.orders = orders;
     syncCartWithProducts();
@@ -326,6 +351,17 @@ async function loadRemoteData() {
     setStatus(error.message);
   } finally {
     state.loading = false;
+  }
+}
+
+async function loadAdminSession() {
+  try {
+    const session = await apiFetch("/api/admin/session");
+    state.isAdmin = Boolean(session.authenticated);
+    renderAdminState();
+  } catch {
+    state.isAdmin = false;
+    renderAdminState();
   }
 }
 
@@ -411,6 +447,40 @@ async function updateOrderStatus(orderId, direction) {
   }
 }
 
+async function loginAdmin(event) {
+  event.preventDefault();
+
+  try {
+    await apiFetch("/api/admin/login", {
+      method: "POST",
+      body: JSON.stringify({ password: adminPasswordInput.value }),
+    });
+    state.isAdmin = true;
+    adminPasswordInput.value = "";
+    renderAdminState();
+    await loadRemoteData();
+    setStatus("Admin dashboard unlocked");
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+async function logoutAdmin() {
+  try {
+    await apiFetch("/api/admin/logout", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    state.isAdmin = false;
+    state.orders = [];
+    renderAdminState();
+    renderOrders();
+    setStatus("Admin session closed");
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
 searchInput.addEventListener("input", (event) => {
   state.query = event.target.value.trim();
   renderProducts();
@@ -483,8 +553,13 @@ ordersList.addEventListener("click", (event) => {
 
 productForm.addEventListener("submit", createProduct);
 orderForm.addEventListener("submit", createOrder);
+adminLoginForm.addEventListener("submit", loginAdmin);
+adminLogoutButton.addEventListener("click", logoutAdmin);
 cartButton.addEventListener("click", openCart);
 closeCart.addEventListener("click", closeCartDrawer);
+adminScrollButton.addEventListener("click", () => {
+  document.getElementById("admin-access").scrollIntoView({ behavior: "smooth" });
+});
 
 checkoutButton.addEventListener("click", () => {
   document.getElementById("orders").scrollIntoView({ behavior: "smooth" });
@@ -495,4 +570,5 @@ checkoutButton.addEventListener("click", () => {
   );
 });
 
-loadRemoteData();
+renderAdminState();
+loadAdminSession().then(loadRemoteData);

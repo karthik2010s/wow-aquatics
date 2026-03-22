@@ -21,7 +21,9 @@ Initialize git if needed, commit, and push to your GitHub repository.
 2. Create a new Web Service from your GitHub repo
 3. Render will detect `render.yaml`
 4. Add the `DATABASE_URL` value from Neon
-5. Deploy
+5. Add an `ADMIN_PASSWORD` value for the admin dashboard
+6. Add a `SESSION_SECRET` value for secure admin sessions
+7. Deploy
 
 ## 4. Use the live URL
 
@@ -34,3 +36,4 @@ After deploy completes, Render gives you a public URL like:
 - Render free services can sleep when idle
 - Neon stores your shared products and orders
 - The server auto-creates tables and seed products on first boot
+- If `ADMIN_PASSWORD` is not set, the app falls back to `admin123`, so set your own password in Render
