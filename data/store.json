@@ -1,0 +1,77 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Neon Tetra Pack",
+      "category": "fish",
+      "price": 18,
+      "stock": 14,
+      "description": "A peaceful schooling fish bundle for planted community tanks.",
+      "meta": "Min tank: 15 gal | Temperament: peaceful"
+    },
+    {
+      "id": 2,
+      "name": "Betta Starter Kit",
+      "category": "equipment",
+      "price": 42,
+      "stock": 6,
+      "description": "Compact setup with filter, light, and conditioner essentials.",
+      "meta": "Best for beginners | Nano tank ready"
+    },
+    {
+      "id": 3,
+      "name": "Java Moss Pad",
+      "category": "plants",
+      "price": 9,
+      "stock": 21,
+      "description": "Hardy live moss for shrimp tanks, driftwood, and fry cover.",
+      "meta": "Low light | Beginner friendly"
+    },
+    {
+      "id": 4,
+      "name": "Canister Filter Pro",
+      "category": "equipment",
+      "price": 95,
+      "stock": 3,
+      "description": "Quiet high-flow filter for clear water in mid-size display tanks.",
+      "meta": "For 40-75 gal tanks"
+    },
+    {
+      "id": 5,
+      "name": "Guppy Color Mix",
+      "category": "fish",
+      "price": 16,
+      "stock": 10,
+      "description": "Bright community guppies selected for active, colorful displays.",
+      "meta": "Livebearer | Great for family tanks"
+    },
+    {
+      "id": 6,
+      "name": "Aquascape Care Pack",
+      "category": "care",
+      "price": 24,
+      "stock": 12,
+      "description": "Water conditioner, bacteria starter, and algae control in one set.",
+      "meta": "Weekly maintenance bundle"
+    },
+    {
+      "id": 7,
+      "name": "Amazon Sword",
+      "category": "plants",
+      "price": 12,
+      "stock": 8,
+      "description": "Lush rooted plant that adds height and movement to freshwater tanks.",
+      "meta": "Background plant | Moderate growth"
+    },
+    {
+      "id": 8,
+      "name": "Home Tank Cleaning Visit",
+      "category": "care",
+      "price": 60,
+      "stock": 5,
+      "description": "Book a maintenance slot for water testing, cleanup, and filter rinsing.",
+      "meta": "Service slot | In-store team visit"
+    }
+  ],
+  "orders": []
+}

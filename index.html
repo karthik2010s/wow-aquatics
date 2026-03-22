@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wow Aquatics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <nav class="topbar">
+          <div>
+            <p class="eyebrow">Local aquarium retail app</p>
+            <h1>Wow Aquatics</h1>
+          </div>
+          <div class="cart-trigger">
+            <button class="cart-button" id="cart-button" type="button">
+              Cart <span id="cart-count">0</span>
+            </button>
+            <p class="cart-status" id="cart-status" aria-live="polite">Cart is empty</p>
+          </div>
+        </nav>
+
+        <section class="hero-grid">
+          <div class="hero-copy">
+            <p class="hero-tag">Fish. Plants. Filters. Confidence.</p>
+            <h2>Run your aquarium shop with a storefront customers actually enjoy using.</h2>
+            <p class="hero-text">
+              Showcase livestock, equipment, maintenance plans, and same-day offers in one clear
+              shopping app.
+            </p>
+            <div class="hero-actions">
+              <a href="#catalog" class="primary-link">Browse catalog</a>
+              <a href="#services" class="secondary-link">View services</a>
+            </div>
+          </div>
+
+          <aside class="hero-panel">
+            <p class="panel-title">Today's store snapshot</p>
+            <div class="stat-grid">
+              <article>
+                <strong>126</strong>
+                <span>Items in stock</span>
+              </article>
+              <article>
+                <strong>18</strong>
+                <span>Live fish varieties</span>
+              </article>
+              <article>
+                <strong>7</strong>
+                <span>Tank setups booked</span>
+              </article>
+              <article>
+                <strong>4.9</strong>
+                <span>Average care rating</span>
+              </article>
+            </div>
+          </aside>
+        </section>
+      </header>
+
+      <main>
+        <section class="section" id="services">
+          <div class="section-heading">
+            <p class="eyebrow">Store services</p>
+            <h3>More than a pet shop</h3>
+          </div>
+          <div class="service-grid">
+            <article class="service-card">
+              <h4>Custom Tank Setup</h4>
+              <p>Design freshwater or planted tanks for homes, offices, and cafes.</p>
+            </article>
+            <article class="service-card">
+              <h4>Monthly Maintenance</h4>
+              <p>Water testing, algae cleanup, filter service, and fish health checks.</p>
+            </article>
+            <article class="service-card">
+              <h4>Livestock Guidance</h4>
+              <p>Compatibility suggestions so beginners avoid overstocking and stress.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section catalog-section" id="catalog">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Shop catalog</p>
+              <h3>Find fish, plants, and gear fast</h3>
+            </div>
+            <label class="search-box" for="search-input">
+              <span>Search</span>
+              <input id="search-input" type="search" placeholder="Try guppy, filter, moss..." />
+            </label>
+          </div>
+
+          <div class="filters" id="filters">
+            <button class="filter-chip active" type="button" data-filter="all">All</button>
+            <button class="filter-chip" type="button" data-filter="fish">Fish</button>
+            <button class="filter-chip" type="button" data-filter="plants">Plants</button>
+            <button class="filter-chip" type="button" data-filter="equipment">Equipment</button>
+            <button class="filter-chip" type="button" data-filter="care">Care</button>
+          </div>
+
+          <div class="product-grid" id="product-grid"></div>
+        </section>
+
+        <section class="section dashboard-section" id="dashboard">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Admin dashboard</p>
+              <h3>Manage stock and customer flow</h3>
+            </div>
+            <p class="dashboard-note">Add products, update inventory live, and monitor what is ready to sell.</p>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="admin-card">
+              <h4>Add product</h4>
+              <form class="admin-form" id="product-form">
+                <input id="product-name" type="text" placeholder="Product name" required />
+                <select id="product-category" required>
+                  <option value="">Select category</option>
+                  <option value="fish">Fish</option>
+                  <option value="plants">Plants</option>
+                  <option value="equipment">Equipment</option>
+                  <option value="care">Care</option>
+                </select>
+                <input id="product-price" type="number" min="1" placeholder="Price" required />
+                <input id="product-stock" type="number" min="0" placeholder="Stock quantity" required />
+                <textarea id="product-description" placeholder="Short product description" required></textarea>
+                <input id="product-meta" type="text" placeholder="Care note or setup note" required />
+                <button class="checkout-button" type="submit">Add product</button>
+              </form>
+            </article>
+
+            <article class="admin-card">
+              <h4>Live inventory</h4>
+              <div class="inventory-list" id="inventory-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section orders-section" id="orders">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Orders</p>
+              <h3>Delivery and pickup tracking</h3>
+            </div>
+            <p class="dashboard-note">Create an order from the cart and move it through each status in real time.</p>
+          </div>
+
+          <div class="order-layout">
+            <article class="admin-card">
+              <h4>Create order</h4>
+              <form class="admin-form" id="order-form">
+                <input id="customer-name" type="text" placeholder="Customer name" required />
+                <select id="fulfillment-type" required>
+                  <option value="pickup">Store pickup</option>
+                  <option value="delivery">Home delivery</option>
+                </select>
+                <input id="customer-address" type="text" placeholder="Address or pickup note" required />
+                <button class="checkout-button" type="submit">Create order from cart</button>
+              </form>
+            </article>
+
+            <article class="admin-card">
+              <h4>Active orders</h4>
+              <div class="orders-list" id="orders-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section story-section">
+          <div class="story-card">
+            <p class="eyebrow">Why this app works</p>
+            <h3>Built for real aquarium-store selling</h3>
+            <p>
+              Customers can browse live fish and accessories, while your team highlights care
+              requirements, bundle deals, and maintenance plans in one place.
+            </p>
+          </div>
+          <div class="story-list">
+            <article>
+              <strong>Care-first selling</strong>
+              <p>Each listing includes tank size, temperament, or setup notes.</p>
+            </article>
+            <article>
+              <strong>Fast checkout flow</strong>
+              <p>Lightweight cart for quick in-store or WhatsApp-assisted ordering.</p>
+            </article>
+            <article>
+              <strong>Mobile friendly</strong>
+              <p>Works smoothly for customers browsing from phones inside the shop.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <aside class="cart-drawer" id="cart-drawer" aria-hidden="true">
+      <div class="cart-header">
+        <div>
+          <p class="eyebrow">Your basket</p>
+          <h3>Ready to order</h3>
+        </div>
+        <button class="close-button" id="close-cart" type="button">Close</button>
+      </div>
+      <div id="cart-items" class="cart-items"></div>
+      <div class="cart-footer">
+        <div class="cart-total-row">
+          <span>Total</span>
+          <strong id="cart-total">$0</strong>
+        </div>
+        <button class="checkout-button" id="checkout-button" type="button">Request checkout</button>
+      </div>
+    </aside>
+
+    <template id="product-card-template">
+      <article class="product-card">
+        <div class="product-top">
+          <p class="product-category"></p>
+          <span class="product-price"></span>
+        </div>
+        <h4 class="product-name"></h4>
+        <p class="product-description"></p>
+        <div class="product-meta"></div>
+        <button class="add-button" type="button">Add to cart</button>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
