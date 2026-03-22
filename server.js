@@ -150,7 +150,7 @@ async function initializeDatabase() {
 async function getProducts() {
   const result = await pool.query(
     `
-      SELECT id, name, category, price::float8 AS price, stock, description, meta
+      SELECT id::int AS id, name, category, price::float8 AS price, stock, description, meta
       FROM products
       ORDER BY created_at DESC, id DESC
     `
@@ -208,7 +208,7 @@ app.post("/api/products", async (req, res) => {
       `
         INSERT INTO products (name, category, price, stock, description, meta)
         VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id, name, category, price::float8 AS price, stock, description, meta
+        RETURNING id::int AS id, name, category, price::float8 AS price, stock, description, meta
       `,
       [product.name, product.category, product.price, product.stock, product.description, product.meta]
     );
@@ -228,7 +228,7 @@ app.patch("/api/products/:id/stock", async (req, res) => {
         UPDATE products
         SET stock = GREATEST(0, stock + $2)
         WHERE id = $1
-        RETURNING id, name, category, price::float8 AS price, stock, description, meta
+        RETURNING id::int AS id, name, category, price::float8 AS price, stock, description, meta
       `,
       [productId, change]
     );
