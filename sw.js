@@ -1,4 +1,4 @@
-const CACHE_NAME = "karthik-pwa-v1";
+const CACHE_NAME = "karthik-marketplace-pwa-v1";
 const APP_SHELL = [
   "/",
   "/styles.css",
@@ -9,20 +9,14 @@ const APP_SHELL = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
+      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
     )
   );
   self.clients.claim();
@@ -34,11 +28,10 @@ self.addEventListener("fetch", (event) => {
   }
 
   const requestUrl = new URL(event.request.url);
+  const isApiRequest = requestUrl.origin === self.location.origin && requestUrl.pathname.startsWith("/api/");
 
-  if (requestUrl.origin === self.location.origin && requestUrl.pathname.startsWith("/api/")) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match("/"))
-    );
+  if (isApiRequest) {
+    event.respondWith(fetch(event.request));
     return;
   }
 

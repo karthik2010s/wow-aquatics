@@ -91,6 +91,10 @@ body::before {
   gap: 10px;
 }
 
+#install-app {
+  white-space: nowrap;
+}
+
 .cart-status {
   margin: 0;
   font-size: 0.9rem;

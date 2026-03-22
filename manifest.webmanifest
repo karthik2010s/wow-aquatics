@@ -1,7 +1,7 @@
 {
   "name": "karthik",
   "short_name": "karthik",
-  "description": "Marketplace app for browsing products, placing orders, and managing inventory.",
+  "description": "Marketplace app for browsing products, managing orders, and shopping on mobile.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
