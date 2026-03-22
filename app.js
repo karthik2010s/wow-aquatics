@@ -6,9 +6,12 @@ const orderStatuses = {
 const state = {
   filter: "all",
   query: "",
+  sort: "featured",
+  stockFilter: "all",
   products: [],
   cart: [],
   orders: [],
+  summary: null,
   isAdmin: false,
   adminToken: window.localStorage.getItem("adminToken") || "",
   loading: false,
@@ -17,6 +20,8 @@ const state = {
 const productGrid = document.getElementById("product-grid");
 const template = document.getElementById("product-card-template");
 const searchInput = document.getElementById("search-input");
+const sortSelect = document.getElementById("sort-select");
+const stockSelect = document.getElementById("stock-select");
 const filters = document.getElementById("filters");
 const cartButton = document.getElementById("cart-button");
 const cartDrawer = document.getElementById("cart-drawer");
@@ -32,6 +37,12 @@ const orderForm = document.getElementById("order-form");
 const ordersList = document.getElementById("orders-list");
 const dashboardSection = document.getElementById("dashboard");
 const activeOrdersCard = document.getElementById("active-orders-card");
+const summaryProducts = document.getElementById("summary-products");
+const summaryLowStock = document.getElementById("summary-low-stock");
+const summaryOrders = document.getElementById("summary-orders");
+const summaryRevenue = document.getElementById("summary-revenue");
+const topCategories = document.getElementById("top-categories");
+const recentOrders = document.getElementById("recent-orders");
 const adminLoginForm = document.getElementById("admin-login-form");
 const adminPasswordInput = document.getElementById("admin-password");
 const adminSessionCard = document.getElementById("admin-session-card");
@@ -172,12 +183,93 @@ function renderFilters() {
   });
 }
 
+function renderDashboardSummary() {
+  const summary = state.summary || {
+    totalProducts: 0,
+    lowStockProducts: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    topCategories: [],
+    recentOrders: [],
+  };
+
+  summaryProducts.textContent = summary.totalProducts;
+  summaryLowStock.textContent = summary.lowStockProducts;
+  summaryOrders.textContent = summary.totalOrders;
+  summaryRevenue.textContent = formatPrice(summary.totalRevenue);
+
+  topCategories.innerHTML = "";
+  recentOrders.innerHTML = "";
+
+  if (!summary.topCategories.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No category data yet.";
+    topCategories.appendChild(empty);
+  } else {
+    summary.topCategories.forEach((entry) => {
+      const row = document.createElement("article");
+      row.className = "insight-row";
+      row.innerHTML = `
+        <p><strong>${formatCategory(entry.category)}</strong></p>
+        <p>${entry.count} product(s)</p>
+      `;
+      topCategories.appendChild(row);
+    });
+  }
+
+  if (!summary.recentOrders.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No recent orders yet.";
+    recentOrders.appendChild(empty);
+  } else {
+    summary.recentOrders.forEach((order) => {
+      const row = document.createElement("article");
+      row.className = "insight-row";
+      row.innerHTML = `
+        <div>
+          <p><strong>${order.customerName}</strong></p>
+          <p class="summary-meta">${formatCategory(order.fulfillmentType)}</p>
+        </div>
+        <p>${formatPrice(order.total)}</p>
+      `;
+      recentOrders.appendChild(row);
+    });
+  }
+}
+
 function renderProducts() {
   const filtered = state.products.filter((product) => {
     const matchesFilter = state.filter === "all" || product.category === state.filter;
     const text = `${product.name} ${product.description} ${product.meta}`.toLowerCase();
     const matchesSearch = text.includes(state.query.toLowerCase());
-    return matchesFilter && matchesSearch;
+    const matchesStock =
+      state.stockFilter === "all" ||
+      (state.stockFilter === "in-stock" && product.stock > 0) ||
+      (state.stockFilter === "low-stock" && product.stock > 0 && product.stock <= 5);
+
+    return matchesFilter && matchesSearch && matchesStock;
+  });
+
+  filtered.sort((first, second) => {
+    if (state.sort === "price-low") {
+      return first.price - second.price;
+    }
+
+    if (state.sort === "price-high") {
+      return second.price - first.price;
+    }
+
+    if (state.sort === "name-az") {
+      return first.name.localeCompare(second.name);
+    }
+
+    if (state.sort === "stock-high") {
+      return second.stock - first.stock;
+    }
+
+    return 0;
   });
 
   productGrid.innerHTML = "";
@@ -223,7 +315,7 @@ function renderProducts() {
   if (!filtered.length && !state.loading) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.textContent = "No products matched your search. Try another product, brand, or category keyword.";
+    empty.textContent = "No products matched your search or filters. Try another keyword or availability option.";
     productGrid.appendChild(empty);
   }
 }
@@ -413,15 +505,18 @@ async function loadRemoteData() {
     const requests = [apiFetch("/api/products")];
     if (state.isAdmin) {
       requests.push(apiFetch("/api/orders"));
+      requests.push(apiFetch("/api/admin/summary"));
     }
 
-    const [products, orders = []] = await Promise.all(requests);
+    const [products, orders = [], summary = null] = await Promise.all(requests);
     state.products = products;
     state.orders = orders;
+    state.summary = summary;
     syncCartWithProducts();
     renderFilters();
     renderProducts();
     renderCart();
+    renderDashboardSummary();
     renderInventory();
     renderOrders();
   } catch (error) {
@@ -444,6 +539,7 @@ async function loadAdminSession() {
     state.isAdmin = false;
     state.adminToken = "";
     window.localStorage.removeItem("adminToken");
+    state.summary = null;
     renderAdminState();
   }
 }
@@ -581,7 +677,9 @@ async function logoutAdmin() {
     state.adminToken = "";
     window.localStorage.removeItem("adminToken");
     state.orders = [];
+    state.summary = null;
     renderAdminState();
+    renderDashboardSummary();
     renderOrders();
     setStatus("Admin session closed");
   } catch (error) {
@@ -604,6 +702,16 @@ async function loadMarketplaceDemo() {
 
 searchInput.addEventListener("input", (event) => {
   state.query = event.target.value.trim();
+  renderProducts();
+});
+
+sortSelect.addEventListener("change", (event) => {
+  state.sort = event.target.value;
+  renderProducts();
+});
+
+stockSelect.addEventListener("change", (event) => {
+  state.stockFilter = event.target.value;
   renderProducts();
 });
 

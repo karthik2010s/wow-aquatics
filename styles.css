@@ -228,6 +228,8 @@ h3 {
 .stat-grid,
 .service-grid,
 .product-grid,
+.summary-grid,
+.insight-grid,
 .dashboard-grid,
 .order-layout,
 .inventory-list,
@@ -288,7 +290,22 @@ h3 {
   min-width: min(100%, 280px);
 }
 
+.catalog-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .search-box input {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font: inherit;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.search-box select {
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 14px 16px;
@@ -383,6 +400,55 @@ h3 {
 
 .product-meta {
   font-size: 0.92rem;
+}
+
+.summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 24px;
+}
+
+.summary-card {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 248, 216, 0.86));
+  padding: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.summary-label,
+.summary-meta {
+  margin: 0;
+  color: var(--muted);
+}
+
+.summary-value {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.insight-grid {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 18px;
+}
+
+.insight-list {
+  display: grid;
+  gap: 12px;
+}
+
+.insight-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.insight-row p {
+  margin: 0;
 }
 
 .dashboard-grid,
@@ -609,6 +675,8 @@ h3 {
     grid-template-columns: 1fr 1fr;
   }
 
+  .summary-grid,
+  .insight-grid,
   .dashboard-grid,
   .order-layout {
     grid-template-columns: 1fr;

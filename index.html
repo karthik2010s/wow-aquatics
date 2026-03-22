@@ -97,10 +97,30 @@
               <p class="eyebrow">Shop catalog</p>
               <h3>Browse across every category</h3>
             </div>
-            <label class="search-box" for="search-input">
-              <span>Search</span>
-              <input id="search-input" type="search" placeholder="Try headphones, shoes, lamp..." />
-            </label>
+            <div class="catalog-toolbar">
+              <label class="search-box" for="search-input">
+                <span>Search</span>
+                <input id="search-input" type="search" placeholder="Try headphones, shoes, lamp..." />
+              </label>
+              <label class="search-box" for="sort-select">
+                <span>Sort by</span>
+                <select id="sort-select">
+                  <option value="featured">Featured</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="name-az">Name: A to Z</option>
+                  <option value="stock-high">Stock: High to Low</option>
+                </select>
+              </label>
+              <label class="search-box" for="stock-select">
+                <span>Availability</span>
+                <select id="stock-select">
+                  <option value="all">All products</option>
+                  <option value="in-stock">In stock</option>
+                  <option value="low-stock">Low stock</option>
+                </select>
+              </label>
+            </div>
           </div>
 
           <div class="filters" id="filters"></div>
@@ -139,9 +159,43 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">Admin dashboard</p>
-              <h3>Manage stock and customer flow</h3>
+              <h3>Track store performance and manage operations</h3>
             </div>
-            <p class="dashboard-note">Add products, update inventory live, and monitor what is ready to sell.</p>
+            <p class="dashboard-note">See product, order, and revenue insights at a glance, then manage inventory live.</p>
+          </div>
+
+          <div class="summary-grid" id="summary-grid">
+            <article class="summary-card">
+              <p class="summary-label">Total products</p>
+              <strong class="summary-value" id="summary-products">0</strong>
+              <span class="summary-meta">Active catalog items</span>
+            </article>
+            <article class="summary-card">
+              <p class="summary-label">Low stock</p>
+              <strong class="summary-value" id="summary-low-stock">0</strong>
+              <span class="summary-meta">Need attention soon</span>
+            </article>
+            <article class="summary-card">
+              <p class="summary-label">Total orders</p>
+              <strong class="summary-value" id="summary-orders">0</strong>
+              <span class="summary-meta">Customer orders placed</span>
+            </article>
+            <article class="summary-card">
+              <p class="summary-label">Revenue</p>
+              <strong class="summary-value" id="summary-revenue">Rs. 0</strong>
+              <span class="summary-meta">Based on all recorded orders</span>
+            </article>
+          </div>
+
+          <div class="insight-grid">
+            <article class="admin-card">
+              <h4>Top categories</h4>
+              <div class="insight-list" id="top-categories"></div>
+            </article>
+            <article class="admin-card">
+              <h4>Recent orders snapshot</h4>
+              <div class="insight-list" id="recent-orders"></div>
+            </article>
           </div>
 
           <div class="dashboard-grid">
