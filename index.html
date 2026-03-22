@@ -17,7 +17,7 @@
       <header class="hero">
         <nav class="topbar">
           <div>
-            <p class="eyebrow">Local aquarium retail app</p>
+            <p class="eyebrow">Multi-category shopping app</p>
             <h1>karthik</h1>
           </div>
           <div class="cart-trigger">
@@ -33,11 +33,11 @@
 
         <section class="hero-grid">
           <div class="hero-copy">
-            <p class="hero-tag">Fish. Plants. Filters. Confidence.</p>
-            <h2>Run your aquarium shop with a storefront customers actually enjoy using.</h2>
+            <p class="hero-tag">Electronics. Home. Fashion. Everyday essentials.</p>
+            <h2>Run your online store like a modern marketplace customers can browse with ease.</h2>
             <p class="hero-text">
-              Showcase livestock, equipment, maintenance plans, and same-day offers in one clear
-              shopping app.
+              Sell products across multiple categories, manage stock, and accept delivery or pickup
+              orders from one clean storefront.
             </p>
             <div class="hero-actions">
               <a href="#catalog" class="primary-link">Browse catalog</a>
@@ -73,20 +73,20 @@
         <section class="section" id="services">
           <div class="section-heading">
             <p class="eyebrow">Store services</p>
-            <h3>More than a pet shop</h3>
+            <h3>Built like a modern marketplace</h3>
           </div>
           <div class="service-grid">
             <article class="service-card">
-              <h4>Custom Tank Setup</h4>
-              <p>Design freshwater or planted tanks for homes, offices, and cafes.</p>
+              <h4>Fast fulfillment</h4>
+              <p>Support local pickup, home delivery, and quick inventory-based ordering.</p>
             </article>
             <article class="service-card">
-              <h4>Monthly Maintenance</h4>
-              <p>Water testing, algae cleanup, filter service, and fish health checks.</p>
+              <h4>Daily deals</h4>
+              <p>Highlight trending products, seasonal offers, and category-based promotions.</p>
             </article>
             <article class="service-card">
-              <h4>Livestock Guidance</h4>
-              <p>Compatibility suggestions so beginners avoid overstocking and stress.</p>
+              <h4>Seller control</h4>
+              <p>Admins can add products, update stock live, and track customer orders privately.</p>
             </article>
           </div>
         </section>
@@ -95,21 +95,15 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">Shop catalog</p>
-              <h3>Find fish, plants, and gear fast</h3>
+              <h3>Browse across every category</h3>
             </div>
             <label class="search-box" for="search-input">
               <span>Search</span>
-              <input id="search-input" type="search" placeholder="Try guppy, filter, moss..." />
+              <input id="search-input" type="search" placeholder="Try headphones, shoes, lamp..." />
             </label>
           </div>
 
-          <div class="filters" id="filters">
-            <button class="filter-chip active" type="button" data-filter="all">All</button>
-            <button class="filter-chip" type="button" data-filter="fish">Fish</button>
-            <button class="filter-chip" type="button" data-filter="plants">Plants</button>
-            <button class="filter-chip" type="button" data-filter="equipment">Equipment</button>
-            <button class="filter-chip" type="button" data-filter="care">Care</button>
-          </div>
+          <div class="filters" id="filters"></div>
 
           <div class="product-grid" id="product-grid"></div>
         </section>
@@ -135,6 +129,7 @@
             <article class="admin-card hidden" id="admin-session-card">
               <h4>Admin session</h4>
               <p class="dashboard-note">You are signed in as admin. Inventory and order controls are unlocked.</p>
+              <button class="cart-button" id="load-marketplace-demo" type="button">Add marketplace demo products</button>
               <button class="close-button" id="admin-logout" type="button">Logout</button>
             </article>
           </div>
@@ -154,17 +149,21 @@
               <h4>Add product</h4>
               <form class="admin-form" id="product-form">
                 <input id="product-name" type="text" placeholder="Product name" required />
-                <select id="product-category" required>
-                  <option value="">Select category</option>
-                  <option value="fish">Fish</option>
-                  <option value="plants">Plants</option>
-                  <option value="equipment">Equipment</option>
-                  <option value="care">Care</option>
-                </select>
+                <input id="product-category" list="category-options" type="text" placeholder="Category" required />
+                <datalist id="category-options">
+                  <option value="electronics"></option>
+                  <option value="home"></option>
+                  <option value="fashion"></option>
+                  <option value="beauty"></option>
+                  <option value="grocery"></option>
+                  <option value="toys"></option>
+                  <option value="office"></option>
+                  <option value="sports"></option>
+                </datalist>
                 <input id="product-price" type="number" min="1" placeholder="Price" required />
                 <input id="product-stock" type="number" min="0" placeholder="Stock quantity" required />
                 <textarea id="product-description" placeholder="Short product description" required></textarea>
-                <input id="product-meta" type="text" placeholder="Care note or setup note" required />
+                <input id="product-meta" type="text" placeholder="Feature note, size, color, or brand" required />
                 <button class="checkout-button" type="submit">Add product</button>
               </form>
             </article>
@@ -209,24 +208,24 @@
         <section class="section story-section">
           <div class="story-card">
             <p class="eyebrow">Why this app works</p>
-            <h3>Built for real aquarium-store selling</h3>
+            <h3>Built for real online selling</h3>
             <p>
-              Customers can browse live fish and accessories, while your team highlights care
-              requirements, bundle deals, and maintenance plans in one place.
+              Customers can discover products, place orders, and track fulfillment while you manage
+              pricing, stock, and category growth from one dashboard.
             </p>
           </div>
           <div class="story-list">
             <article>
-              <strong>Care-first selling</strong>
-              <p>Each listing includes tank size, temperament, or setup notes.</p>
+              <strong>Marketplace browsing</strong>
+              <p>Search and filter products by any category you add to the store.</p>
             </article>
             <article>
-              <strong>Fast checkout flow</strong>
-              <p>Lightweight cart for quick in-store or WhatsApp-assisted ordering.</p>
+              <strong>Simple checkout flow</strong>
+              <p>Customers can order for delivery or pickup in just a few steps.</p>
             </article>
             <article>
-              <strong>Mobile friendly</strong>
-              <p>Works smoothly for customers browsing from phones inside the shop.</p>
+              <strong>Admin ready</strong>
+              <p>Stock and active order controls stay private behind admin access.</p>
             </article>
           </div>
         </section>

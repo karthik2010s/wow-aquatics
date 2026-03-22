@@ -37,6 +37,7 @@ const adminSessionCard = document.getElementById("admin-session-card");
 const adminLogoutButton = document.getElementById("admin-logout");
 const adminStatusText = document.getElementById("admin-status-text");
 const adminScrollButton = document.getElementById("admin-scroll");
+const loadMarketplaceDemoButton = document.getElementById("load-marketplace-demo");
 
 function openCart() {
   cartDrawer.classList.add("open");
@@ -48,8 +49,16 @@ function closeCartDrawer() {
   cartDrawer.setAttribute("aria-hidden", "true");
 }
 
+function getCategoryLabel(category) {
+  return String(category)
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 function formatCategory(category) {
-  return category.charAt(0).toUpperCase() + category.slice(1);
+  return getCategoryLabel(category);
 }
 
 function formatPrice(amount) {
@@ -106,6 +115,34 @@ function renderAdminState() {
     : "Customers can browse and order, but stock controls stay private.";
 }
 
+function renderFilters() {
+  const categories = [...new Set(state.products.map((product) => product.category))].sort((a, b) =>
+    a.localeCompare(b)
+  );
+
+  if (state.filter !== "all" && !categories.includes(state.filter)) {
+    state.filter = "all";
+  }
+
+  filters.innerHTML = "";
+
+  const allButton = document.createElement("button");
+  allButton.className = `filter-chip${state.filter === "all" ? " active" : ""}`;
+  allButton.type = "button";
+  allButton.dataset.filter = "all";
+  allButton.textContent = "All";
+  filters.appendChild(allButton);
+
+  categories.forEach((category) => {
+    const button = document.createElement("button");
+    button.className = `filter-chip${state.filter === category ? " active" : ""}`;
+    button.type = "button";
+    button.dataset.filter = category;
+    button.textContent = getCategoryLabel(category);
+    filters.appendChild(button);
+  });
+}
+
 function renderProducts() {
   const filtered = state.products.filter((product) => {
     const matchesFilter = state.filter === "all" || product.category === state.filter;
@@ -147,7 +184,7 @@ function renderProducts() {
   if (!filtered.length && !state.loading) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.textContent = "No products matched your search. Try another fish, plant, or equipment keyword.";
+    empty.textContent = "No products matched your search. Try another product, brand, or category keyword.";
     productGrid.appendChild(empty);
   }
 }
@@ -343,6 +380,7 @@ async function loadRemoteData() {
     state.products = products;
     state.orders = orders;
     syncCartWithProducts();
+    renderFilters();
     renderProducts();
     renderCart();
     renderInventory();
@@ -481,6 +519,19 @@ async function logoutAdmin() {
   }
 }
 
+async function loadMarketplaceDemo() {
+  try {
+    await apiFetch("/api/admin/load-marketplace-demo", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    await loadRemoteData();
+    setStatus("Marketplace demo products added");
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
 searchInput.addEventListener("input", (event) => {
   state.query = event.target.value.trim();
   renderProducts();
@@ -555,6 +606,7 @@ productForm.addEventListener("submit", createProduct);
 orderForm.addEventListener("submit", createOrder);
 adminLoginForm.addEventListener("submit", loginAdmin);
 adminLogoutButton.addEventListener("click", logoutAdmin);
+loadMarketplaceDemoButton.addEventListener("click", loadMarketplaceDemo);
 cartButton.addEventListener("click", openCart);
 closeCart.addEventListener("click", closeCartDrawer);
 adminScrollButton.addEventListener("click", () => {

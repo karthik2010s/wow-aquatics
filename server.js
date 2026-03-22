@@ -94,6 +94,73 @@ const seedProducts = [
   },
 ];
 
+const marketplaceDemoProducts = [
+  {
+    name: "Wireless Noise-Canceling Headphones",
+    category: "electronics",
+    price: 2499,
+    stock: 18,
+    description: "Bluetooth over-ear headphones with deep bass and all-day battery life.",
+    meta: "Brand: SonicBeat | Color: Black",
+  },
+  {
+    name: "Smart LED Desk Lamp",
+    category: "home",
+    price: 899,
+    stock: 25,
+    description: "Touch-controlled desk lamp with brightness levels and USB charging port.",
+    meta: "Warm + cool light modes",
+  },
+  {
+    name: "Running Sneakers",
+    category: "fashion",
+    price: 1899,
+    stock: 20,
+    description: "Lightweight everyday sneakers with breathable mesh and cushioned sole.",
+    meta: "Sizes: 6-10 | Unisex",
+  },
+  {
+    name: "Herbal Skin Care Kit",
+    category: "beauty",
+    price: 699,
+    stock: 16,
+    description: "Face wash, serum, and moisturizer bundle for daily skincare.",
+    meta: "Suitable for normal skin",
+  },
+  {
+    name: "Premium Dry Fruits Box",
+    category: "grocery",
+    price: 1299,
+    stock: 14,
+    description: "Mixed almonds, cashews, raisins, and pistachios in a gift-ready box.",
+    meta: "500g pack",
+  },
+  {
+    name: "Building Blocks Set",
+    category: "toys",
+    price: 1099,
+    stock: 22,
+    description: "Creative building toy set for kids with colorful pieces and storage box.",
+    meta: "Ages 5+",
+  },
+  {
+    name: "Ergonomic Office Chair Cushion",
+    category: "office",
+    price: 799,
+    stock: 19,
+    description: "Memory foam back and seat support cushion for long work hours.",
+    meta: "Portable design",
+  },
+  {
+    name: "Yoga Mat Pro",
+    category: "sports",
+    price: 999,
+    stock: 17,
+    description: "Anti-slip yoga mat with carrying strap for home and studio workouts.",
+    meta: "6 mm thickness",
+  },
+];
+
 app.use(express.json());
 
 function parseCookies(cookieHeader = "") {
@@ -253,6 +320,29 @@ app.post("/api/admin/logout", (_req, res) => {
     `admin_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secureCookie}`
   );
   res.json({ authenticated: false });
+});
+
+app.post("/api/admin/load-marketplace-demo", requireAdmin, async (_req, res) => {
+  try {
+    for (const product of marketplaceDemoProducts) {
+      const existing = await pool.query("SELECT id FROM products WHERE LOWER(name) = LOWER($1) LIMIT 1", [product.name]);
+      if (existing.rows.length) {
+        continue;
+      }
+
+      await pool.query(
+        `
+          INSERT INTO products (name, category, price, stock, description, meta)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `,
+        [product.name, product.category, product.price, product.stock, product.description, product.meta]
+      );
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to load marketplace demo products." });
+  }
 });
 
 app.get("/api/products", async (_req, res) => {
