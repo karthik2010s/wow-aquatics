@@ -205,7 +205,6 @@ h3 {
   border: 1px solid var(--line);
 }
 
-.hero-panel,
 .service-card,
 .product-card,
 .story-card,
@@ -213,16 +212,6 @@ h3 {
   border: 1px solid var(--line);
   border-radius: 22px;
   background: var(--panel);
-}
-
-.hero-panel {
-  min-width: 320px;
-  padding: 22px;
-}
-
-.panel-title {
-  margin: 0 0 16px;
-  color: var(--sand);
 }
 
 .stat-grid,
@@ -239,20 +228,10 @@ h3 {
   gap: 16px;
 }
 
-.stat-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.stat-grid article {
-  padding: 14px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.stat-grid strong {
-  display: block;
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 1.8rem;
+.hero .hero-panel,
+.hero .panel-title,
+.hero .stat-grid {
+  display: none !important;
 }
 
 .section {
@@ -775,10 +754,6 @@ h3 {
   .product-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
-  }
-
-  .hero-panel {
-    min-width: 0;
   }
 
   .inventory-item-header,
