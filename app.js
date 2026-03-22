@@ -566,13 +566,28 @@ async function createProduct(event) {
 
   const payload = {
     name: document.getElementById("product-name").value.trim(),
-    category: document.getElementById("product-category").value,
+    category: document.getElementById("product-category").value.trim().toLowerCase(),
     price: Number(document.getElementById("product-price").value),
     stock: Number(document.getElementById("product-stock").value),
     imageUrl,
     description: document.getElementById("product-description").value.trim(),
     meta: document.getElementById("product-meta").value.trim(),
   };
+
+  if (!payload.name || !payload.category) {
+    setStatus("Enter product name and category");
+    return;
+  }
+
+  if (!Number.isFinite(payload.price) || payload.price <= 0) {
+    setStatus("Enter a valid price");
+    return;
+  }
+
+  if (!Number.isFinite(payload.stock) || payload.stock < 0) {
+    setStatus("Enter a valid stock quantity");
+    return;
+  }
 
   try {
     await apiFetch("/api/products", {
@@ -584,7 +599,7 @@ async function createProduct(event) {
     await loadRemoteData();
     setStatus("Product added to shared inventory");
   } catch (error) {
-    setStatus(error.message);
+    setStatus(error.message === "Admin login required." ? "Please unlock admin first" : error.message);
   }
 }
 

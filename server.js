@@ -224,12 +224,14 @@ function requireAdmin(req, res, next) {
 function sanitizeProduct(product) {
   return {
     name: String(product.name || "").trim(),
-    category: String(product.category || "").trim(),
+    category: String(product.category || "")
+      .trim()
+      .toLowerCase(),
     price: Number(product.price),
     stock: Number(product.stock),
     imageUrl: String(product.imageUrl || "").trim(),
-    description: String(product.description || "").trim(),
-    meta: String(product.meta || "").trim(),
+    description: String(product.description || "").trim() || "Product details coming soon.",
+    meta: String(product.meta || "").trim() || "Standard listing",
   };
 }
 
@@ -443,8 +445,16 @@ app.get("/api/products", async (_req, res) => {
 app.post("/api/products", requireAdmin, async (req, res) => {
   const product = sanitizeProduct(req.body);
 
-  if (!product.name || !product.category || !product.description || !product.meta) {
-    return res.status(400).json({ error: "Missing required product fields." });
+  if (!product.name || !product.category) {
+    return res.status(400).json({ error: "Product name and category are required." });
+  }
+
+  if (!Number.isFinite(product.price) || product.price <= 0) {
+    return res.status(400).json({ error: "Enter a valid product price." });
+  }
+
+  if (!Number.isFinite(product.stock) || product.stock < 0) {
+    return res.status(400).json({ error: "Enter a valid stock quantity." });
   }
 
   try {
