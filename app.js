@@ -11,7 +11,6 @@ const state = {
   products: [],
   cart: [],
   orders: [],
-  summary: null,
   isAdmin: false,
   adminToken: window.localStorage.getItem("adminToken") || "",
   loading: false,
@@ -184,13 +183,19 @@ function renderFilters() {
 }
 
 function renderDashboardSummary() {
-  const summary = state.summary || {
-    totalProducts: 0,
-    lowStockProducts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    topCategories: [],
-    recentOrders: [],
+  const summary = {
+    totalProducts: state.products.length,
+    lowStockProducts: state.products.filter((product) => product.stock <= 5).length,
+    totalOrders: state.orders.length,
+    totalRevenue: state.orders.reduce((sum, order) => sum + order.total, 0),
+    topCategories: [...new Set(state.products.map((product) => product.category))]
+      .map((category) => ({
+        category,
+        count: state.products.filter((product) => product.category === category).length,
+      }))
+      .sort((first, second) => second.count - first.count || first.category.localeCompare(second.category))
+      .slice(0, 4),
+    recentOrders: [...state.orders].slice(0, 4),
   };
 
   summaryProducts.textContent = summary.totalProducts;
@@ -505,13 +510,11 @@ async function loadRemoteData() {
     const requests = [apiFetch("/api/products")];
     if (state.isAdmin) {
       requests.push(apiFetch("/api/orders"));
-      requests.push(apiFetch("/api/admin/summary"));
     }
 
-    const [products, orders = [], summary = null] = await Promise.all(requests);
+    const [products, orders = []] = await Promise.all(requests);
     state.products = products;
     state.orders = orders;
-    state.summary = summary;
     syncCartWithProducts();
     renderFilters();
     renderProducts();
@@ -539,7 +542,6 @@ async function loadAdminSession() {
     state.isAdmin = false;
     state.adminToken = "";
     window.localStorage.removeItem("adminToken");
-    state.summary = null;
     renderAdminState();
   }
 }
@@ -590,13 +592,17 @@ async function createProduct(event) {
   }
 
   try {
-    await apiFetch("/api/products", {
+    const createdProduct = await apiFetch("/api/products", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+    state.products.unshift(createdProduct);
     productForm.reset();
     clearImagePreview();
-    await loadRemoteData();
+    renderFilters();
+    renderProducts();
+    renderInventory();
+    renderDashboardSummary();
     setStatus("Product added to shared inventory");
   } catch (error) {
     setStatus(error.message === "Admin login required." ? "Please unlock admin first" : error.message);
@@ -692,7 +698,6 @@ async function logoutAdmin() {
     state.adminToken = "";
     window.localStorage.removeItem("adminToken");
     state.orders = [];
-    state.summary = null;
     renderAdminState();
     renderDashboardSummary();
     renderOrders();
