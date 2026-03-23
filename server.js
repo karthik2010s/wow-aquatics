@@ -15,6 +15,7 @@ const APP_MASKABLE_ICON_FILE = path.join(__dirname, "icons", "icon-maskable.svg"
 const DATABASE_URL = process.env.DATABASE_URL;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 const SESSION_SECRET = process.env.SESSION_SECRET || "change-this-admin-secret";
+const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID || "";
 
 if (!DATABASE_URL) {
   console.error("Missing DATABASE_URL environment variable.");
@@ -527,6 +528,13 @@ app.get("/icons/icon.svg", (_req, res) => {
 app.get("/icons/icon-maskable.svg", (_req, res) => {
   res.type("image/svg+xml");
   res.sendFile(APP_MASKABLE_ICON_FILE);
+});
+
+app.get("/api/public-config", (_req, res) => {
+  res.json({
+    analyticsEnabled: Boolean(GA_MEASUREMENT_ID),
+    gaMeasurementId: GA_MEASUREMENT_ID,
+  });
 });
 
 app.get("/api/customer/session", async (req, res) => {

@@ -15,6 +15,11 @@ const state = {
   customerToken: window.localStorage.getItem("customerToken") || "",
   customer: null,
   customerOrders: [],
+  analytics: {
+    enabled: false,
+    measurementId: "",
+    loaded: false,
+  },
   loading: false,
 };
 
@@ -43,6 +48,7 @@ const summaryOrders = document.getElementById("summary-orders");
 const summaryRevenue = document.getElementById("summary-revenue");
 const topCategories = document.getElementById("top-categories");
 const recentOrders = document.getElementById("recent-orders");
+const analyticsStatusPanel = document.getElementById("analytics-status-panel");
 const adminLoginForm = document.getElementById("admin-login-form");
 const adminPasswordInput = document.getElementById("admin-password");
 const adminSessionCard = document.getElementById("admin-session-card");
@@ -125,6 +131,18 @@ function formatDateTime(value) {
   }).format(new Date(value));
 }
 
+function maskMeasurementId(measurementId) {
+  if (!measurementId) {
+    return "Not connected";
+  }
+
+  if (measurementId.length <= 6) {
+    return measurementId;
+  }
+
+  return `${measurementId.slice(0, 6)}...${measurementId.slice(-3)}`;
+}
+
 function getPlaceholderImage(product) {
   const label = encodeURIComponent(getCategoryLabel(product.category || "Product"));
   return `https://placehold.co/800x550/fff1b8/7b6436?text=${label}`;
@@ -192,6 +210,53 @@ async function apiFetch(url, options = {}) {
 
 function setStatus(message) {
   cartStatus.textContent = message;
+}
+
+function trackEvent(eventName, params = {}) {
+  if (!state.analytics.loaded || typeof window.gtag !== "function") {
+    return;
+  }
+
+  window.gtag("event", eventName, params);
+}
+
+function renderAnalyticsStatus() {
+  analyticsStatusPanel.innerHTML = "";
+
+  const card = document.createElement("div");
+  card.className = "insight-row";
+  card.innerHTML = `
+    <div>
+      <p><strong>${state.analytics.enabled ? "Google Analytics connected" : "Google Analytics not connected"}</strong></p>
+      <p class="summary-meta">${
+        state.analytics.enabled
+          ? `Reports are visible only in your Google Analytics admin account. ID: ${maskMeasurementId(
+              state.analytics.measurementId
+            )}`
+          : "Add GA_MEASUREMENT_ID in your server environment to enable visitor tracking."
+      }</p>
+    </div>
+  `;
+  analyticsStatusPanel.appendChild(card);
+}
+
+function loadAnalyticsScript(measurementId) {
+  if (!measurementId || state.analytics.loaded) {
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+  document.head.appendChild(script);
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function gtag() {
+    window.dataLayer.push(arguments);
+  };
+  window.gtag("js", new Date());
+  window.gtag("config", measurementId);
+  state.analytics.loaded = true;
 }
 
 function renderCustomerOrders() {
@@ -291,6 +356,7 @@ function renderAdminState() {
   adminStatusText.textContent = state.isAdmin
     ? "Admin access is active. Inventory and order tracking controls are unlocked."
     : "Customers can browse and order, but stock controls stay private.";
+  renderAnalyticsStatus();
 }
 
 function renderFilters() {
@@ -385,6 +451,8 @@ function renderDashboardSummary() {
       recentOrders.appendChild(row);
     });
   }
+
+  renderAnalyticsStatus();
 }
 
 function renderProducts() {
@@ -727,6 +795,22 @@ async function loadCustomerSession() {
   await loadCustomerOrders();
 }
 
+async function loadPublicConfig() {
+  try {
+    const config = await apiFetch("/api/public-config");
+    state.analytics.enabled = Boolean(config.analyticsEnabled && config.gaMeasurementId);
+    state.analytics.measurementId = config.gaMeasurementId || "";
+    if (state.analytics.enabled) {
+      loadAnalyticsScript(state.analytics.measurementId);
+    }
+  } catch {
+    state.analytics.enabled = false;
+    state.analytics.measurementId = "";
+  }
+
+  renderAnalyticsStatus();
+}
+
 async function createProduct(event) {
   event.preventDefault();
 
@@ -821,6 +905,10 @@ async function createOrder(event) {
     address: customerAddressInput.value.trim() || state.customer?.address || "",
     items: state.cart,
   };
+  const purchaseValue = state.cart.reduce((sum, item) => {
+    const product = state.products.find((entry) => entry.id === item.productId);
+    return product ? sum + product.price * item.quantity : sum;
+  }, 0);
 
   try {
     await apiFetch("/api/orders", {
@@ -835,6 +923,11 @@ async function createOrder(event) {
     if (state.customer) {
       renderCustomerState();
     }
+    trackEvent("purchase", {
+      currency: "INR",
+      value: purchaseValue,
+      method: payload.fulfillmentType,
+    });
     setStatus(`${formatCategory(payload.fulfillmentType)} order placed successfully`);
   } catch (error) {
     setStatus(error.message);
@@ -947,6 +1040,7 @@ async function loginCustomer(event) {
     customerLoginForm.reset();
     renderCustomerState();
     await loadCustomerOrders();
+    trackEvent("login", { method: "email" });
     setStatus("Customer account logged in");
   } catch (error) {
     setStatus(error.message);
@@ -977,6 +1071,7 @@ async function registerCustomer(event) {
     customerRegisterForm.reset();
     renderCustomerState();
     await loadCustomerOrders();
+    trackEvent("sign_up", { method: "email" });
     setStatus("Customer account created");
   } catch (error) {
     setStatus(error.message);
@@ -1178,4 +1273,4 @@ renderAdminState();
 renderCustomerState();
 updateInstallButtonVisibility(isIosInstallHintAvailable());
 registerServiceWorker();
-Promise.all([loadAdminSession(), loadCustomerSession()]).then(loadRemoteData);
+Promise.all([loadPublicConfig(), loadAdminSession(), loadCustomerSession()]).then(loadRemoteData);
