@@ -49,6 +49,7 @@ const summaryRevenue = document.getElementById("summary-revenue");
 const topCategories = document.getElementById("top-categories");
 const recentOrders = document.getElementById("recent-orders");
 const analyticsStatusPanel = document.getElementById("analytics-status-panel");
+const analyticsQuickStatus = document.getElementById("analytics-quick-status");
 const adminLoginForm = document.getElementById("admin-login-form");
 const adminPasswordInput = document.getElementById("admin-password");
 const adminSessionCard = document.getElementById("admin-session-card");
@@ -221,13 +222,21 @@ function trackEvent(eventName, params = {}) {
 }
 
 function renderAnalyticsStatus() {
+  const statusText = state.analytics.enabled
+    ? `Google Analytics connected: ${maskMeasurementId(state.analytics.measurementId)}`
+    : "Google Analytics not connected yet";
+
+  if (analyticsQuickStatus) {
+    analyticsQuickStatus.textContent = statusText;
+  }
+
   analyticsStatusPanel.innerHTML = "";
 
   const card = document.createElement("div");
   card.className = "insight-row";
   card.innerHTML = `
     <div>
-      <p><strong>${state.analytics.enabled ? "Google Analytics connected" : "Google Analytics not connected"}</strong></p>
+      <p><strong>${statusText}</strong></p>
       <p class="summary-meta">${
         state.analytics.enabled
           ? `Reports are visible only in your Google Analytics admin account. ID: ${maskMeasurementId(
