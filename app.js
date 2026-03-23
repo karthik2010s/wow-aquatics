@@ -78,7 +78,19 @@ const customerRegisterAddress = document.getElementById("customer-register-addre
 const customerRegisterPassword = document.getElementById("customer-register-password");
 const customerPhoneInput = document.getElementById("customer-phone");
 const installAppButton = document.getElementById("install-app");
+const productModal = document.getElementById("product-modal");
+const productModalBackdrop = document.getElementById("product-modal-backdrop");
+const productModalCloseButton = document.getElementById("product-modal-close");
+const productModalImage = document.getElementById("product-modal-image");
+const productModalCategory = document.getElementById("product-modal-category");
+const productModalTitle = document.getElementById("product-modal-title");
+const productModalPrice = document.getElementById("product-modal-price");
+const productModalBadges = document.getElementById("product-modal-badges");
+const productModalDescription = document.getElementById("product-modal-description");
+const productModalMeta = document.getElementById("product-modal-meta");
+const productModalAddButton = document.getElementById("product-modal-add");
 let deferredInstallPrompt = null;
+let activeProductId = null;
 
 function openCart() {
   cartDrawer.classList.add("open");
@@ -88,6 +100,44 @@ function openCart() {
 function closeCartDrawer() {
   cartDrawer.classList.remove("open");
   cartDrawer.setAttribute("aria-hidden", "true");
+}
+
+function openProductModal(productId) {
+  const product = state.products.find((entry) => entry.id === productId);
+  if (!product) {
+    return;
+  }
+
+  const inventory = getInventoryState(product.stock);
+  activeProductId = productId;
+  productModalCategory.textContent = formatCategory(product.category);
+  productModalTitle.textContent = product.name;
+  productModalPrice.textContent = formatPrice(product.price);
+  productModalDescription.textContent = product.description;
+  productModalMeta.innerHTML = `
+    <p><strong>Highlights</strong></p>
+    <p>${product.meta}</p>
+    <p><strong>Availability</strong></p>
+    <p>${inventory.label} - ${product.stock} item(s) left</p>
+  `;
+  productModalBadges.innerHTML = `
+    <span class="inventory-badge ${inventory.className}">${inventory.label}</span>
+    <span class="inventory-badge in-stock">${formatCategory(product.category)}</span>
+  `;
+  productModalImage.src = product.imageUrl || getPlaceholderImage(product);
+  productModalImage.alt = product.name;
+  productModalAddButton.disabled = product.stock <= 0;
+  productModalAddButton.textContent = product.stock <= 0 ? "Sold out" : "Add to cart";
+  productModal.classList.remove("hidden");
+  productModal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeProductModal() {
+  activeProductId = null;
+  productModal.classList.add("hidden");
+  productModal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
 }
 
 function updateInstallButtonVisibility(visible) {
@@ -512,6 +562,7 @@ function renderProducts() {
     const node = template.content.firstElementChild.cloneNode(true);
     const addButton = node.querySelector(".add-button");
     const image = node.querySelector(".product-image");
+    node.dataset.productId = product.id;
 
     node.querySelector(".product-category").textContent = formatCategory(product.category);
     node.querySelector(".product-price").textContent = formatPrice(product.price);
@@ -1133,11 +1184,17 @@ if (sortSelect) {
 if (productGrid) {
   productGrid.addEventListener("click", (event) => {
     const button = event.target.closest(".add-button");
-    if (!button) {
+    if (button) {
+      addToCart(Number(button.dataset.productId));
       return;
     }
 
-    addToCart(Number(button.dataset.productId));
+    const card = event.target.closest(".product-card");
+    if (!card) {
+      return;
+    }
+
+    openProductModal(Number(card.dataset.productId));
   });
 }
 
@@ -1250,6 +1307,15 @@ installAppButton.addEventListener("click", async () => {
   deferredInstallPrompt = null;
   updateInstallButtonVisibility(false);
 });
+productModalAddButton.addEventListener("click", () => {
+  if (!activeProductId) {
+    return;
+  }
+
+  addToCart(activeProductId);
+});
+productModalBackdrop.addEventListener("click", closeProductModal);
+productModalCloseButton.addEventListener("click", closeProductModal);
 customerScrollButton.addEventListener("click", () => {
   document.getElementById("customer-access").scrollIntoView({ behavior: "smooth" });
 });
@@ -1276,6 +1342,12 @@ window.addEventListener("appinstalled", () => {
   deferredInstallPrompt = null;
   updateInstallButtonVisibility(false);
   setStatus("App installed successfully");
+});
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !productModal.classList.contains("hidden")) {
+    closeProductModal();
+  }
 });
 
 renderAdminState();

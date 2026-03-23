@@ -308,6 +308,29 @@
       </div>
     </aside>
 
+    <div class="product-modal hidden" id="product-modal" aria-hidden="true">
+      <div class="product-modal-backdrop" id="product-modal-backdrop"></div>
+      <div class="product-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+        <button class="close-button product-modal-close" id="product-modal-close" type="button">Close</button>
+        <div class="product-modal-grid">
+          <div class="product-modal-media">
+            <img id="product-modal-image" alt="" />
+          </div>
+          <div class="product-modal-copy">
+            <p class="eyebrow" id="product-modal-category"></p>
+            <h3 id="product-modal-title"></h3>
+            <p class="product-modal-price" id="product-modal-price"></p>
+            <div class="product-modal-badges" id="product-modal-badges"></div>
+            <p class="product-modal-description" id="product-modal-description"></p>
+            <div class="product-modal-meta" id="product-modal-meta"></div>
+            <div class="product-modal-actions">
+              <button class="checkout-button" id="product-modal-add" type="button">Add to cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <template id="product-card-template">
       <article class="product-card">
         <div class="product-image-wrap">
